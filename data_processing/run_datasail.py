@@ -5,7 +5,7 @@ import re
 
 
 def main():
-    with open('/home/lisa-marie-rolli/comptox_benchmark/automatic_ToxCast_Query/datasail_inputs.txt', 'r') as inputs:
+    with open('/home/lisa-marie-rolli/ToxCastBenchmark/data_processing', 'r') as inputs:
         assay_filenames = inputs.read().splitlines()
     with open('/home/lisa-marie-rolli/comptox_benchmark/data_processing/considered_hormone_assay_names.txt', 'r') as assays_done:
         completed_assays = assays_done.read().splitlines()
