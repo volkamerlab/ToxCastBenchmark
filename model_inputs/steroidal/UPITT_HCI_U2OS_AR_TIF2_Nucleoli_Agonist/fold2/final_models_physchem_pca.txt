@@ -1,5 +1,0 @@
-
-rf	fold2	0.0
-mlp	fold2	0.043355498476206
-svm	fold2	0.0
-cat_boost	fold2	-0.019925419255468715
