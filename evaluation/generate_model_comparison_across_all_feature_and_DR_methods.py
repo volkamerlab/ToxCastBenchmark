@@ -9,11 +9,11 @@ from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 import argparse
 
 custom_palette = {
-    "mrmr": "#c82254",
-    "pca": "#a3a919",
-    "variance": "#004877",
-    "MI": "#000000",
-    "none": "#6e6e6e"
+    "rf": "#c82254",
+    "mlp": "#a3a919",
+    "cat_boost": "#004877",
+    "svm": "#000000",
+    "tabpfn": "#6e6e6e"
 }
 
 
@@ -27,14 +27,14 @@ def inverse_fisher_z(z):
 
 
 
-def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_map, output_dir):
+def cd_plot_for_nemenyi(final_results, model_name_map, output_dir):
     final_results['mcc_z'] = fisher_z(final_results['mcc'])
     means = (
-        final_results.groupby(['assay', 'dr_method'], as_index=False)['mcc_z']
+        final_results.groupby(['assay', 'model'], as_index=False)['mcc_z']
         .mean()
     )
     means['mcc'] = means['mcc_z'].apply(inverse_fisher_z)
-    wide = means.pivot(index='assay', columns='dr_method', values='mcc')
+    wide = means.pivot(index='assay', columns='model', values='mcc')
 
     # Rank per assay (rank 1 = best; higher mcc_z is better)
 
@@ -43,12 +43,12 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
     # Average ranks 
     
     avg_ranks = ranks.mean(axis=0)
-    models = [dr_name_map[m] for m in avg_ranks.index]
-    wide = means.pivot(index='assay', columns='dr_method', values='mcc_z')
+    models = [model_name_map[m] for m in avg_ranks.index]
+    wide = means.pivot(index='assay', columns='model', values='mcc_z')
     avg_mcc = wide.mean(axis=0)
     avg_mcc = avg_mcc.apply(inverse_fisher_z)
 
-    pretty_names = {m: f"{dr_name_map [m]}\navg. MCC={avg_mcc[m]:.3f}" for m in avg_ranks.index}
+    pretty_names = {m: f"{model_name_map [m]}\navg. MCC={avg_mcc[m]:.3f}" for m in avg_ranks.index}
     avg_ranks.index = [pretty_names[m] for m in avg_ranks.index]
 
 
@@ -89,9 +89,9 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
     )
     
 
-    plt.title(f"DR method comparison across assays and models on \n{feature_name_map[feature_type]} ")
+    plt.title(f"Model omparison across all feature types and DR methods")
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/{feature_type}_nemenyi_pval_heatmap_comparing_dr_methods.png', dpi = 300, transparent = False)
+    plt.savefig(f'{output_dir}/nemenyi_pval_heatmap_models_across_everything.png', dpi = 300, transparent = False)
 
     pvals.index = avg_ranks.index
     pvals.columns = avg_ranks.index
@@ -109,22 +109,22 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
         label_fmt_right="{label}\navg. rank: {rank:.2f}",
         color_palette=color_palette
     )
-    plt.title(f"Critical difference\nDR method comparison across assays on \n{feature_name_map[feature_type]}")
+    plt.title(f"Critical difference\nModel omparison across all feature types and DR methods")
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/{feature_type}_critical_difference_plot_nemenyi_comparing_DR_methods.png', dpi = 300, transparent = False)
+    plt.savefig(f'{output_dir}/critical_difference_plot_nemenyi_comparing_models.png', dpi = 300, transparent = False)
     
 
 
 def pairwise_friedman_nemenyi(data):
     # Pivot the data to have one column per model and one row per subject
-    pivoted = data.pivot(index='fold', columns='dr_method', values='mcc')
+    pivoted = data.pivot(index='fold', columns='model', values='mcc')
     # Drop rows with missing values (if any)
     pivoted = pivoted.dropna()
 
     # Run Friedman test with correction by Iman and Davenport (1980)
     friedman_stat, p = friedmanchisquare(*pivoted.values.T)
     N = len(np.unique(data['fold']))
-    k = len(np.unique(data['dr_method']))
+    k = len(np.unique(data['model']))
     iman_davenport_correction = ((N - 1) * friedman_stat) / (N * (k - 1) - friedman_stat)
 
     # Compute p-value from F distribution
@@ -156,7 +156,6 @@ def pairwise_friedman_nemenyi(data):
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluation of 5 fold CV results comparing DR methods across all assays with one feature-DR combination")
     parser.add_argument("-d", '--directory', help="input_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/model_outputs/')
-    parser.add_argument("--feature_type", '-f', help="Feature type used", default='morgan')
     parser.add_argument("--output_dir", '-o', help="Output_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/plotting_results/')
     parser.add_argument("--tabpfn_missing", help="is TabPFN missing", default=False, type=bool)
     return parser.parse_args()
@@ -166,63 +165,59 @@ def parse_args():
 def main(args):
 
     final_results = None
-    feature_type = args.feature_type
     out_dir = args.output_dir
     num_models = 5 if (not bool(args.tabpfn_missing)) else 4
     for dr_method in ['MI', 'mrmr', 'pca', 'variance', 'none']:
-        for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
-            directory = f'{args.directory}/{subfolder}/'
+        for feature_type in ['morgan', 'maccs', 'physchem']:
+            for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
+                directory = f'{args.directory}/{subfolder}/'
 
-            for content in os.listdir(directory):
+                for content in os.listdir(directory):
 
-                if '.csv' in content:
-                    continue
-                if '.png' in content:
-                    continue
-                
-                results_df = None
-                assay_done = True
-                for fold in range(5):
-                    try:
-                        new_df = pd.read_csv(
-                            f'{directory}/{content}/fold{fold}/final_models_{args.feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
-
-                        new_df['dr_method'] = [
-                            f'{dr_method}' for _ in range(len(new_df.index))]
-                        
-                    except:
-                        assay_done = False
-                        break
-                    if not len(new_df) == num_models:
-                        assay_done = False
-                        break
+                    if '.csv' in content:
+                        continue
+                    if '.png' in content:
+                        continue
                     
-                    if results_df is None:
-                        results_df = new_df
+                    results_df = None
+                    assay_done = True
+                    for fold in range(5):
+                        try:
+                            new_df = pd.read_csv(
+                                f'{directory}/{content}/fold{fold}/final_models_{feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
+
+                            new_df['dr_method'] = [
+                                f'{dr_method}' for _ in range(len(new_df.index))]
+                            
+                        except:
+                            assay_done = False
+                            break
+                        if not len(new_df) == num_models:
+                            assay_done = False
+                            break
+                        
+                        if results_df is None:
+                            results_df = new_df
+                        else:
+                            
+                            results_df = pd.concat([results_df, new_df], axis=0)
+
+                    if not assay_done:
+                        continue
                     else:
                         
-                        results_df = pd.concat([results_df, new_df], axis=0)
+                        results_df.reset_index(inplace=True, drop=True)
 
-                if not assay_done:
-                    continue
-                else:
-                    
-                    results_df.reset_index(inplace=True, drop=True)
-
-                    results_df['assay'] = [content for _ in range(len(results_df))]
-                    if final_results is None:
-                        final_results = results_df
-                    else:
-                        final_results = pd.concat(
-                            [final_results, results_df.copy(deep=True)])
-                        final_results.reset_index(inplace=True, drop=True)
+                        results_df['assay'] = [content for _ in range(len(results_df))]
+                        if final_results is None:
+                            final_results = results_df
+                        else:
+                            final_results = pd.concat(
+                                [final_results, results_df.copy(deep=True)])
+                            final_results.reset_index(inplace=True, drop=True)
                     
                 
-    feature_name_map = {
-        'physchem': 'physicochemical properties',
-        'morgan': 'Morgan fingerprints',
-        'maccs': 'MACCS fingerprints',
-    }
+
 
     model_name_map = {
         "rf": "RF",
@@ -231,15 +226,9 @@ def main(args):
         "cat_boost": "CatBoost",
         "tabpfn": "TabPFN"
     }
-    dr_name_map = {
-        "pca": "PCA",
-        "mrmr": "MRMR",
-        "variance": "Highest variance",
-        "MI": "Mutual Information",
-        "none": "No DR"
-    }
 
-    cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_map, output_dir=out_dir)
+
+    cd_plot_for_nemenyi(final_results, model_name_map, output_dir=out_dir)
 
 
 
