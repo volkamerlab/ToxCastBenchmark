@@ -312,10 +312,11 @@ def create_boxplots_per_assay(final_results, dr_method, feature_type, model_name
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluation of 5 fold CV results comparing models across all assays with one feature-DR combination")
-    parser.add_argument("-d", '--directory', help="input_directory", default='/home/lisa-marie-rolli//comptox_benchmark/ToxCast_Assays_Endpoint_Results/')
+    parser.add_argument("-d", '--directory', help="input_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/model_outputs/')
     parser.add_argument("--dr_method", help="DR method used", default='MI')
     parser.add_argument("--feature_type", '-f', help="Feature type used", default='physchem')
-    parser.add_argument("--output_dir", '-o', help="Output_directory", default='/home/lisa-marie-rolli//comptox_benchmark/ToxCast_Assays_Endpoint_Results/')
+    parser.add_argument("--output_dir", '-o', help="Output_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/plotting_results/')
+    parser.add_argument("--tabpfn_missing", help="is TabPFN missing", default=False, type=bool)
     return parser.parse_args()
 
 
@@ -326,6 +327,7 @@ def main(args):
     dr_method = args.dr_method
     feature_type = args.feature_type
     out_dir = args.output_dir
+    num_models = 5 if not bool(args.tabpfn_missing) else 4
     for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
         directory = f'{args.directory}/{subfolder}/'
 
@@ -341,12 +343,12 @@ def main(args):
             for fold in range(5):
                 try:
                     new_df = pd.read_csv(
-                        f'{directory}/{content}/fold{fold}/final_models_physchem_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
+                        f'{directory}/{content}/fold{fold}/final_models_{args.feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
 
                 except:
                     assay_done = False
                     break
-                if not len(new_df) == 5:
+                if not len(new_df) == num_models:
                     assay_done = False
                     break
                 
