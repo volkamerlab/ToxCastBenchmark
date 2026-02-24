@@ -29,7 +29,6 @@ def inverse_fisher_z(z):
 
 def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_map, output_dir):
     final_results['mcc_z'] = fisher_z(final_results['mcc'])
-    
     means = (
         final_results.groupby(['assay', 'dr_method'], as_index=False)['mcc_z']
         .mean()
@@ -153,7 +152,7 @@ def parse_args():
     parser.add_argument("-d", '--directory', help="input_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/model_outputs/')
     parser.add_argument("--feature_type", '-f', help="Feature type used", default='morgan')
     parser.add_argument("--output_dir", '-o', help="Output_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/plotting_results/')
-    parser.add_argument("--tabpfn_missing", help="is TabPFN missing", default=True, type=bool)
+    parser.add_argument("--tabpfn_missing", help="is TabPFN missing", default=False, type=bool)
     return parser.parse_args()
 
 
@@ -163,8 +162,9 @@ def main(args):
     final_results = None
     feature_type = args.feature_type
     out_dir = args.output_dir
-    num_models = 5 if not bool(args.tabpfn_missing) else 4
-    for dr_method in ['pca', 'mrmr', 'MI', 'variance']:
+    num_models = 5 if (not bool(args.tabpfn_missing)) else 4
+    for dr_method in ['MI', 'mrmr', 'pca', 'variance']:
+    #for dr_method in ['MI']:
         for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
             directory = f'{args.directory}/{subfolder}/'
 
@@ -181,8 +181,10 @@ def main(args):
                     try:
                         new_df = pd.read_csv(
                             f'{directory}/{content}/fold{fold}/final_models_{args.feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
+
                         new_df['dr_method'] = [
                             f'{dr_method}' for _ in range(len(new_df.index))]
+                        
                     except:
                         assay_done = False
                         break
@@ -193,11 +195,13 @@ def main(args):
                     if results_df is None:
                         results_df = new_df
                     else:
+                        
                         results_df = pd.concat([results_df, new_df], axis=0)
-                
+
                 if not assay_done:
                     continue
                 else:
+                    
                     results_df.reset_index(inplace=True, drop=True)
 
                     results_df['assay'] = [content for _ in range(len(results_df))]
@@ -209,27 +213,26 @@ def main(args):
                         final_results.reset_index(inplace=True, drop=True)
                     
                 
-        
-        feature_name_map = {
-            'physchem': 'physicochemical properties',
-            'morgan': 'Morgan fingerprints',
-            'maccs': 'MACCS fingerprints',
-        }
+    feature_name_map = {
+        'physchem': 'physicochemical properties',
+        'morgan': 'Morgan fingerprints',
+        'maccs': 'MACCS fingerprints',
+    }
 
-        model_name_map = {
-            "rf": "RF",
-            "mlp": "MLP",
-            "svm": "SVM",
-            "cat_boost": "CatBoost",
-            "tabpfn": "TabPFN"
-        }
-        dr_name_map = {
-            "pca": "PCA",
-            "mrmr": "MRMR",
-            "variance": "Highest variance",
-            "MI": "Mutual Information",
-            "none": "No DR"
-        }
+    model_name_map = {
+        "rf": "RF",
+        "mlp": "MLP",
+        "svm": "SVM",
+        "cat_boost": "CatBoost",
+        "tabpfn": "TabPFN"
+    }
+    dr_name_map = {
+        "pca": "PCA",
+        "mrmr": "MRMR",
+        "variance": "Highest variance",
+        "MI": "Mutual Information",
+        "none": "No DR"
+    }
 
     cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_map, output_dir=out_dir)
 
