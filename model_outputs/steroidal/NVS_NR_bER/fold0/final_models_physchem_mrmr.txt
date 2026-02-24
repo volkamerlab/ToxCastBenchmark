@@ -1,0 +1,5 @@
+
+rf	fold0	0.30743637997794904
+mlp	fold0	0.2136470118608566
+svm	fold0	0.0
+cat_boost	fold0	0.0
