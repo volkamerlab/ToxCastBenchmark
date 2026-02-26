@@ -8,7 +8,7 @@ from matplotlib.patches import Patch
 from scipy.stats import friedmanchisquare, f
 import math
 import scikit_posthocs as sp
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 import argparse
 
 custom_palette = {
@@ -66,7 +66,10 @@ def cd_plot_for_nemenyi(final_results, dr_method, model_name_map, feature_type, 
 
     #generate p-value heat map
     plt.close('all')
-    cmap = LinearSegmentedColormap.from_list("p-values", ["#c82254", "#D3D3D3","#004877"])
+    norm = TwoSlopeNorm(vmin=pvals.values.min(), vmax=pvals.values.max(), vcenter = 0.05)
+
+
+    cmap = LinearSegmentedColormap.from_list("p-values", ["#c82254", '#D3D3D3',"#004877"])
     mask = np.eye(len(pvals), dtype=bool)
 
     annot = np.empty(pvals.shape, dtype=object)
@@ -81,6 +84,7 @@ def cd_plot_for_nemenyi(final_results, dr_method, model_name_map, feature_type, 
         pvals,
         cmap=cmap,
         mask=mask,
+        norm=norm,
         vmin=0,
         fmt="", 
         vmax=1,

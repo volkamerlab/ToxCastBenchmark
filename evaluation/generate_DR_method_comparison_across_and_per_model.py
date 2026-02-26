@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import friedmanchisquare, f
 import scikit_posthocs as sp
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 import argparse
 
 custom_palette = {
@@ -60,7 +60,12 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
 
     #generate p-value heat map
     plt.close('all')
-    cmap = LinearSegmentedColormap.from_list("p-values", ["#c82254", "#D3D3D3","#004877"])
+
+
+    norm = TwoSlopeNorm(vmin=pvals.values.min(), vmax=pvals.values.max(), vcenter = 0.05)
+
+
+    cmap = LinearSegmentedColormap.from_list("p-values", ["#c82254", '#D3D3D3',"#004877"])
     mask = np.eye(len(pvals), dtype=bool)
 
     annot = np.empty(pvals.shape, dtype=object)
@@ -76,6 +81,7 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
         cmap=cmap,
         mask=mask,
         vmin=0,
+        norm=norm,
         fmt="", 
         vmax=1,
         cbar_kws={"label": "p-value"},
@@ -83,7 +89,7 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
     )
     
 
-    plt.title(f"Model comparison across assays and models on \n{feature_name_map[feature_type]} ")
+    plt.title(f"DR method comparison across assays and models on \n{feature_name_map[feature_type]} ")
     plt.tight_layout()
     plt.savefig(f'{output_dir}/{feature_type}_nemenyi_pval_heatmap_comparing_dr_methods.png', dpi = 300, transparent = False)
 
@@ -111,14 +117,14 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
 
 def pairwise_friedman_nemenyi(data):
     # Pivot the data to have one column per model and one row per subject
-    pivoted = data.pivot(index='fold', columns='model', values='mcc')
+    pivoted = data.pivot(index='fold', columns='dr_method', values='mcc')
     # Drop rows with missing values (if any)
     pivoted = pivoted.dropna()
 
     # Run Friedman test with correction by Iman and Davenport (1980)
     friedman_stat, p = friedmanchisquare(*pivoted.values.T)
     N = len(np.unique(data['fold']))
-    k = len(np.unique(data['model']))
+    k = len(np.unique(data['dr_method']))
     iman_davenport_correction = ((N - 1) * friedman_stat) / (N * (k - 1) - friedman_stat)
 
     # Compute p-value from F distribution
@@ -148,7 +154,7 @@ def pairwise_friedman_nemenyi(data):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Evaluation of 5 fold CV results comparing models across all assays with one feature-DR combination")
+    parser = argparse.ArgumentParser(description="Evaluation of 5 fold CV results comparing DR methods across all assays with one feature-DR combination")
     parser.add_argument("-d", '--directory', help="input_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/model_outputs/')
     parser.add_argument("--feature_type", '-f', help="Feature type used", default='morgan')
     parser.add_argument("--output_dir", '-o', help="Output_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/plotting_results/')
@@ -163,8 +169,7 @@ def main(args):
     feature_type = args.feature_type
     out_dir = args.output_dir
     num_models = 5 if (not bool(args.tabpfn_missing)) else 4
-    for dr_method in ['MI', 'mrmr', 'pca', 'variance']:
-    #for dr_method in ['MI']:
+    for dr_method in ['MI', 'mrmr', 'pca', 'variance', 'none']:
         for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
             directory = f'{args.directory}/{subfolder}/'
 
