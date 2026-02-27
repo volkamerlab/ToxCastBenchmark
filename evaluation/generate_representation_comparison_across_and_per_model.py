@@ -9,11 +9,10 @@ from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 import argparse
 
 custom_palette = {
-    "rf": "#c82254",
-    "mlp": "#a3a919",
-    "cat_boost": "#004877",
-    "svm": "#000000",
-    "tabpfn": "#6e6e6e"
+    "physchem": "#c82254",
+    "embeddings": "#a3a919",
+    "maccs": "#004877",
+    "morgan": "#000000",
 }
 
 
@@ -27,14 +26,14 @@ def inverse_fisher_z(z):
 
 
 
-def cd_plot_for_nemenyi(final_results, model_name_map, output_dir):
+def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir):
     final_results['mcc_z'] = fisher_z(final_results['mcc'])
     means = (
-        final_results.groupby(['assay', 'model'], as_index=False)['mcc_z']
+        final_results.groupby(['assay', 'feature_type'], as_index=False)['mcc_z']
         .mean()
     )
     means['mcc'] = means['mcc_z'].apply(inverse_fisher_z)
-    wide = means.pivot(index='assay', columns='model', values='mcc')
+    wide = means.pivot(index='assay', columns='feature_type', values='mcc')
 
     # Rank per assay (rank 1 = best; higher mcc_z is better)
 
@@ -43,12 +42,12 @@ def cd_plot_for_nemenyi(final_results, model_name_map, output_dir):
     # Average ranks 
     
     avg_ranks = ranks.mean(axis=0)
-    models = [model_name_map[m] for m in avg_ranks.index]
-    wide = means.pivot(index='assay', columns='model', values='mcc_z')
+    models = [feature_name_map[m] for m in avg_ranks.index]
+    wide = means.pivot(index='assay', columns='feature_type', values='mcc_z')
     avg_mcc = wide.mean(axis=0)
     avg_mcc = avg_mcc.apply(inverse_fisher_z)
 
-    pretty_names = {m: f"{model_name_map [m]}\navg. MCC={avg_mcc[m]:.3f}" for m in avg_ranks.index}
+    pretty_names = {m: f"{feature_name_map [m]}\navg. MCC={avg_mcc[m]:.3f}" for m in avg_ranks.index}
     avg_ranks.index = [pretty_names[m] for m in avg_ranks.index]
 
 
@@ -89,9 +88,9 @@ def cd_plot_for_nemenyi(final_results, model_name_map, output_dir):
     )
     
 
-    plt.title(f"Model comparison across all feature types and DR methods")
+    plt.title(f"Compound representation comparison across assays, models, and DR methods")
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/nemenyi_pval_heatmap_models_across_everything.png', dpi = 300, transparent = False)
+    plt.savefig(f'{output_dir}/nemenyi_pval_heatmap_comparing_feature_types.png', dpi = 300, transparent = False)
 
     pvals.index = avg_ranks.index
     pvals.columns = avg_ranks.index
@@ -109,22 +108,22 @@ def cd_plot_for_nemenyi(final_results, model_name_map, output_dir):
         label_fmt_right="{label}\navg. rank: {rank:.2f}",
         color_palette=color_palette
     )
-    plt.title(f"Critical difference\nModel comparison across all feature types and DR methods")
+    plt.title(f"Critical difference\nrepresentation comparison across assays, models, and DR methods")
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/critical_difference_plot_nemenyi_comparing_models.png', dpi = 300, transparent = False)
+    plt.savefig(f'{output_dir}/critical_difference_plot_nemenyi_comparing_representations.png', dpi = 300, transparent = False)
     
 
 
 def pairwise_friedman_nemenyi(data):
     # Pivot the data to have one column per model and one row per subject
-    pivoted = data.pivot(index='fold', columns='model', values='mcc')
+    pivoted = data.pivot(index='fold', columns='dr_method', values='mcc')
     # Drop rows with missing values (if any)
     pivoted = pivoted.dropna()
 
     # Run Friedman test with correction by Iman and Davenport (1980)
     friedman_stat, p = friedmanchisquare(*pivoted.values.T)
     N = len(np.unique(data['fold']))
-    k = len(np.unique(data['model']))
+    k = len(np.unique(data['dr_method']))
     iman_davenport_correction = ((N - 1) * friedman_stat) / (N * (k - 1) - friedman_stat)
 
     # Compute p-value from F distribution
@@ -155,9 +154,9 @@ def pairwise_friedman_nemenyi(data):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluation of 5 fold CV results comparing DR methods across all assays with one feature-DR combination")
-    parser.add_argument("-d", '--directory', help="input_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/model_outputs/')
+    parser.add_argument("-d", '--directory', help="input_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/model_outputs/') 
     parser.add_argument("--output_dir", '-o', help="Output_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/plotting_results/')
-    parser.add_argument("--tabpfn_missing", help="is TabPFN missing", default=False, type=bool)
+    parser.add_argument("--tabpfn_missing", help="is TabPFN missing", default=True, type=bool)
     return parser.parse_args()
 
 
@@ -165,10 +164,11 @@ def parse_args():
 def main(args):
 
     final_results = None
+    
     out_dir = args.output_dir
     num_models = 5 if (not bool(args.tabpfn_missing)) else 4
-    for dr_method in ['MI', 'mrmr', 'pca', 'variance', 'none']:
-        for feature_type in ['morgan', 'maccs', 'physchem']:
+    for feature_type in ['physchem', 'morgan', 'maccs', 'embeddings']:
+        for dr_method in ['MI', 'mrmr', 'pca', 'variance']:
             for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
                 directory = f'{args.directory}/{subfolder}/'
 
@@ -186,8 +186,8 @@ def main(args):
                             new_df = pd.read_csv(
                                 f'{directory}/{content}/fold{fold}/final_models_{feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
 
-                            new_df['dr_method'] = [
-                                f'{dr_method}' for _ in range(len(new_df.index))]
+                            new_df['feature_type'] = [
+                                f'{feature_type}' for _ in range(len(new_df.index))]
                             
                         except:
                             assay_done = False
@@ -217,7 +217,12 @@ def main(args):
                             final_results.reset_index(inplace=True, drop=True)
                     
                 
-
+    feature_name_map = {
+        'physchem': 'physicochemical properties',
+        'morgan': 'Morgan fingerprints',
+        'maccs': 'MACCS fingerprints',
+        'embeddings': 'Embeddings'
+    }
 
     model_name_map = {
         "rf": "RF",
@@ -226,9 +231,15 @@ def main(args):
         "cat_boost": "CatBoost",
         "tabpfn": "TabPFN"
     }
+    dr_name_map = {
+        "pca": "PCA",
+        "mrmr": "MRMR",
+        "variance": "Highest variance",
+        "MI": "Mutual Information",
+        "none": "No DR"
+    }
 
-
-    cd_plot_for_nemenyi(final_results, model_name_map, output_dir=out_dir)
+    cd_plot_for_nemenyi(final_results, feature_name_map, output_dir=out_dir)
 
 
 
