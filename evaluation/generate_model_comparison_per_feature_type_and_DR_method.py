@@ -373,7 +373,7 @@ def main(args):
                     final_results = pd.concat(
                         [final_results, results_df.copy(deep=True)])
                     final_results.reset_index(inplace=True, drop=True)
-                
+        
             
         
         feature_name_map = {
@@ -390,7 +390,7 @@ def main(args):
             "tabpfn": "TabPFN"
         }
 
-
+    print(final_results)
     create_boxplots_per_assay(final_results=final_results, dr_method=dr_method, feature_name_map=feature_name_map, feature_type=feature_type, model_name_map=model_name_map, output_dir=out_dir)
     cd_plot_for_nemenyi(final_results, dr_method, model_name_map, feature_type, feature_name_map, output_dir=out_dir)
 
