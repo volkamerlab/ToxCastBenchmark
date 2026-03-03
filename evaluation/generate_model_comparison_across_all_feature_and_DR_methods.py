@@ -166,7 +166,8 @@ def main(args):
 
     final_results = None
     out_dir = args.output_dir
-    num_models = 5 if (not bool(args.tabpfn_missing)) else 4
+    num_models = [5] if (not bool(args.tabpfn_missing)) else [4, 5]
+    print(num_models)
     for dr_method in ['MI', 'mrmr', 'pca', 'variance', 'none']:
         for feature_type in ['morgan', 'maccs', 'physchem']:
             for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
@@ -192,7 +193,7 @@ def main(args):
                         except:
                             assay_done = False
                             break
-                        if not len(new_df) == num_models:
+                        if not len(new_df) in num_models:
                             assay_done = False
                             break
                         
