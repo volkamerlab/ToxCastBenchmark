@@ -1,0 +1,9 @@
+{ 
+"fs_name": "mi",
+"num_features": "100",
+"features": "../model_inputs/progestagens//CEETOX_H295R_OHPROG//fold0//embeddings.csv",
+"output_dir": "../model_inputs/progestagens//CEETOX_H295R_OHPROG//fold0/",
+"samples": "../model_inputs/progestagens//CEETOX_H295R_OHPROG//fold0/train.txt",
+"feature_type": "embeddings",
+"fs_specific": { "response": "../ToxCastDownloads/binary_responses_and_datasail_input_files/progestagens/CEETOX_H295R_OHPROG-2025-07-11_binary_response.csv", "task": "classification"}
+ }

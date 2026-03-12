@@ -1,0 +1,9 @@
+{ 
+"fs_name": "mi",
+"num_features": "100",
+"features": "../model_inputs/steroidal//ACEA_AR_antagonist_80hr//fold1/hyperparameter_tuning/fold1//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//ACEA_AR_antagonist_80hr//fold1/hyperparameter_tuning/fold1/",
+"samples": "../model_inputs/steroidal//ACEA_AR_antagonist_80hr//fold1/hyperparameter_tuning/fold1/train.txt",
+"feature_type": "embeddings",
+"fs_specific": { "response": "../ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/ACEA_AR_antagonist_80hr-2025-07-14_binary_response.csv", "task": "classification"}
+ }

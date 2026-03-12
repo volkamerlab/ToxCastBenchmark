@@ -1,0 +1,9 @@
+{ 
+"fs_name": "variance",
+"num_features": "100",
+"features": "../model_inputs/steroidal//NVS_NR_bER//fold0//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//NVS_NR_bER//fold0/",
+"samples": "../model_inputs/steroidal//NVS_NR_bER//fold0/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {}
+ }

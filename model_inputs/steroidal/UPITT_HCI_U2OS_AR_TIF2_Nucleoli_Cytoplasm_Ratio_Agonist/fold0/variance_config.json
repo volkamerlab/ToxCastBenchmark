@@ -1,0 +1,9 @@
+{ 
+"fs_name": "variance",
+"num_features": "100",
+"features": "../model_inputs/steroidal//UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Cytoplasm_Ratio_Agonist//fold0//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Cytoplasm_Ratio_Agonist//fold0/",
+"samples": "../model_inputs/steroidal//UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Cytoplasm_Ratio_Agonist//fold0/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {}
+ }

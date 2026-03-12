@@ -1,0 +1,9 @@
+{ 
+"fs_name": "pca",
+"num_features": "100",
+"features": "../model_inputs/steroidal//OT_AR_ARSRC1_0960//fold2/hyperparameter_tuning/fold0//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//OT_AR_ARSRC1_0960//fold2/hyperparameter_tuning/fold0/",
+"samples": "../model_inputs/steroidal//OT_AR_ARSRC1_0960//fold2/hyperparameter_tuning/fold0/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {"random_state": 42, "file_name": "embeddings_transformed_matrix_pca.csv"}
+ }

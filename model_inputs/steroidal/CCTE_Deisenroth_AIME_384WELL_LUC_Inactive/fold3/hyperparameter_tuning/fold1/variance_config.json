@@ -1,0 +1,9 @@
+{ 
+"fs_name": "variance",
+"num_features": "100",
+"features": "../model_inputs/steroidal//CCTE_Deisenroth_AIME_384WELL_LUC_Inactive//fold3/hyperparameter_tuning/fold1//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//CCTE_Deisenroth_AIME_384WELL_LUC_Inactive//fold3/hyperparameter_tuning/fold1/",
+"samples": "../model_inputs/steroidal//CCTE_Deisenroth_AIME_384WELL_LUC_Inactive//fold3/hyperparameter_tuning/fold1/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {}
+ }

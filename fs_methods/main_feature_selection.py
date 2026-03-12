@@ -2,7 +2,6 @@ import sys
 import json
 from numpy.random import seed
 from PCA import Principal_Component_Analysis
-from Correlation import Correlation
 from MRMR import MRMR
 from Variance import Variance_FS
 from SelectKBestMI import Select_MI
@@ -18,10 +17,6 @@ def decide_model(data_json_dict):
     if model_name == "pca":
 
         return Principal_Component_Analysis(data_json_dict)
-
-    elif model_name == "corr":
-
-        return Correlation(data_json_dict)
 
     elif model_name == "mrmr":
         return MRMR(data_json_dict)

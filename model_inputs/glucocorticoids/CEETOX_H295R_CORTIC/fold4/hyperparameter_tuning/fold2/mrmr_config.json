@@ -1,0 +1,9 @@
+{ 
+"fs_name": "mrmr",
+"num_features": "100",
+"features": "../model_inputs/glucocorticoids//CEETOX_H295R_CORTIC//fold4/hyperparameter_tuning/fold2//embeddings.csv",
+"output_dir": "../model_inputs/glucocorticoids//CEETOX_H295R_CORTIC//fold4/hyperparameter_tuning/fold2/",
+"samples": "../model_inputs/glucocorticoids//CEETOX_H295R_CORTIC//fold4/hyperparameter_tuning/fold2/train.txt",
+"feature_type": "embeddings",
+"fs_specific": { "response": "../ToxCastDownloads/binary_responses_and_datasail_input_files/glucocorticoids/CEETOX_H295R_CORTIC-2025-07-11_binary_response.csv", "task": "classification"}
+ }
