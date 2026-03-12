@@ -90,7 +90,10 @@ def main():
                             for ht_fold in range(4):
                                 training_samples = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/train.txt'
                                 test_samples = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/test.txt'
-                                features = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/{feature_type}_feature_names_{fs_name}.txt'
+                                if not (feature_type == 'none'):
+                                    features = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/{feature_type}_feature_names_{fs_name}.txt'
+                                else:
+                                    features = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/all_feature_names_{feature_type}.txt'
 
                                 if not fs_name == 'pca':
                                     feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/embeddings.csv'
@@ -131,7 +134,11 @@ def main():
 
                         else:
                             feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/{feature_type}_transformed_matrix_pca.csv'
-                        features = f'{path_to_CV_folds}/fold{fold}/{feature_type}_feature_names_{fs_name}.txt'
+                        if not (feature_type == 'none'):
+                            features = f'{path_to_CV_folds}/fold{fold}/{feature_type}_feature_names_{fs_name}.txt'
+                        else:
+                            features = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/all_feature_names_{feature_type}.txt'
+
                         training_samples = f'{path_to_CV_folds}/fold{fold}/train.txt'
                         test_samples = f'{path_to_CV_folds}/fold{fold}/test.txt'
                         output_dir = f'{path_to_CV_folds}/fold{fold}/'
