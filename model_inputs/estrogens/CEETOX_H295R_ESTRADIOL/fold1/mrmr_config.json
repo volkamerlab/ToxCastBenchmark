@@ -1,0 +1,9 @@
+{ 
+"fs_name": "mrmr",
+"num_features": "100",
+"features": "../model_inputs/estrogens//CEETOX_H295R_ESTRADIOL//fold1//embeddings.csv",
+"output_dir": "../model_inputs/estrogens//CEETOX_H295R_ESTRADIOL//fold1/",
+"samples": "../model_inputs/estrogens//CEETOX_H295R_ESTRADIOL//fold1/train.txt",
+"feature_type": "embeddings",
+"fs_specific": { "response": "../ToxCastDownloads/binary_responses_and_datasail_input_files/estrogens/CEETOX_H295R_ESTRADIOL-2025-07-11_binary_response.csv", "task": "classification"}
+ }

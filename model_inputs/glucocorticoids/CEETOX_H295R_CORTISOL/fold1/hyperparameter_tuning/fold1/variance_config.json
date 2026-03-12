@@ -1,0 +1,9 @@
+{ 
+"fs_name": "variance",
+"num_features": "100",
+"features": "../model_inputs/glucocorticoids//CEETOX_H295R_CORTISOL//fold1/hyperparameter_tuning/fold1//embeddings.csv",
+"output_dir": "../model_inputs/glucocorticoids//CEETOX_H295R_CORTISOL//fold1/hyperparameter_tuning/fold1/",
+"samples": "../model_inputs/glucocorticoids//CEETOX_H295R_CORTISOL//fold1/hyperparameter_tuning/fold1/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {}
+ }

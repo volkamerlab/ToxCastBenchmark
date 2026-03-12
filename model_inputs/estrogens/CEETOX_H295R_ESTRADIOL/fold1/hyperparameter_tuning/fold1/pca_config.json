@@ -1,0 +1,9 @@
+{ 
+"fs_name": "pca",
+"num_features": "100",
+"features": "../model_inputs/estrogens//CEETOX_H295R_ESTRADIOL//fold1/hyperparameter_tuning/fold1//embeddings.csv",
+"output_dir": "../model_inputs/estrogens//CEETOX_H295R_ESTRADIOL//fold1/hyperparameter_tuning/fold1/",
+"samples": "../model_inputs/estrogens//CEETOX_H295R_ESTRADIOL//fold1/hyperparameter_tuning/fold1/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {"random_state": 42, "file_name": "embeddings_transformed_matrix_pca.csv"}
+ }

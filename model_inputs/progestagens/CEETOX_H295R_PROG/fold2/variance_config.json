@@ -1,0 +1,9 @@
+{ 
+"fs_name": "variance",
+"num_features": "100",
+"features": "../model_inputs/progestagens//CEETOX_H295R_PROG//fold2//embeddings.csv",
+"output_dir": "../model_inputs/progestagens//CEETOX_H295R_PROG//fold2/",
+"samples": "../model_inputs/progestagens//CEETOX_H295R_PROG//fold2/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {}
+ }
