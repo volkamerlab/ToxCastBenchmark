@@ -1,0 +1,9 @@
+{ 
+"fs_name": "variance",
+"num_features": "100",
+"features": "../model_inputs/steroidal//ATG_ERE_CIS//fold4//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//ATG_ERE_CIS//fold4/",
+"samples": "../model_inputs/steroidal//ATG_ERE_CIS//fold4/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {}
+ }

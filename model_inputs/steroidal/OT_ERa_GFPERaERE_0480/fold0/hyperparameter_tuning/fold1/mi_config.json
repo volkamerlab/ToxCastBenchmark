@@ -1,0 +1,9 @@
+{ 
+"fs_name": "mi",
+"num_features": "100",
+"features": "../model_inputs/steroidal//OT_ERa_GFPERaERE_0480//fold0/hyperparameter_tuning/fold1//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//OT_ERa_GFPERaERE_0480//fold0/hyperparameter_tuning/fold1/",
+"samples": "../model_inputs/steroidal//OT_ERa_GFPERaERE_0480//fold0/hyperparameter_tuning/fold1/train.txt",
+"feature_type": "embeddings",
+"fs_specific": { "response": "../ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/OT_ERa_GFPERaERE_0480-2025-07-14_binary_response.csv", "task": "classification"}
+ }

@@ -4,9 +4,6 @@ import subprocess
 
 
 def main():
-    with open(f'../data_processing/considered_hormone_assay_names.txt', 'r') as relevant_assay_file:
-        relevant_assays = relevant_assay_file.read().splitlines()
-
     task = 'classification'
     fs_main = '../fs_methods/main_feature_selection.py'
     json_config_gen = "..//fs_methods/json_config_generator.sh"
