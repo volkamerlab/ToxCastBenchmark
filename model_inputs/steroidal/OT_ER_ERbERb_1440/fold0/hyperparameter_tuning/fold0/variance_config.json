@@ -1,0 +1,9 @@
+{ 
+"fs_name": "variance",
+"num_features": "100",
+"features": "../model_inputs/steroidal//OT_ER_ERbERb_1440//fold0/hyperparameter_tuning/fold0//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//OT_ER_ERbERb_1440//fold0/hyperparameter_tuning/fold0/",
+"samples": "../model_inputs/steroidal//OT_ER_ERbERb_1440//fold0/hyperparameter_tuning/fold0/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {}
+ }

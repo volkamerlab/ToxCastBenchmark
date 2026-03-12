@@ -1,0 +1,9 @@
+{ 
+"fs_name": "mi",
+"num_features": "100",
+"features": "../model_inputs/steroidal//UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Agonist//fold2/hyperparameter_tuning/fold1//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Agonist//fold2/hyperparameter_tuning/fold1/",
+"samples": "../model_inputs/steroidal//UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Agonist//fold2/hyperparameter_tuning/fold1/train.txt",
+"feature_type": "embeddings",
+"fs_specific": { "response": "../ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Agonist-2025-07-16_binary_response.csv", "task": "classification"}
+ }

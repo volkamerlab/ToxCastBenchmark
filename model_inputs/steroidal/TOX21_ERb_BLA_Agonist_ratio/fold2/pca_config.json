@@ -1,0 +1,9 @@
+{ 
+"fs_name": "pca",
+"num_features": "100",
+"features": "../model_inputs/steroidal//TOX21_ERb_BLA_Agonist_ratio//fold2//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//TOX21_ERb_BLA_Agonist_ratio//fold2/",
+"samples": "../model_inputs/steroidal//TOX21_ERb_BLA_Agonist_ratio//fold2/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {"random_state": 42, "file_name": "embeddings_transformed_matrix_pca.csv"}
+ }
