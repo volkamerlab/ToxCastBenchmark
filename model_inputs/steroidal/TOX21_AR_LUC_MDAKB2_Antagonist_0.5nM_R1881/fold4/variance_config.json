@@ -1,0 +1,9 @@
+{ 
+"fs_name": "variance",
+"num_features": "100",
+"features": "../model_inputs/steroidal//TOX21_AR_LUC_MDAKB2_Antagonist_0.5nM_R1881//fold4//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//TOX21_AR_LUC_MDAKB2_Antagonist_0.5nM_R1881//fold4/",
+"samples": "../model_inputs/steroidal//TOX21_AR_LUC_MDAKB2_Antagonist_0.5nM_R1881//fold4/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {}
+ }

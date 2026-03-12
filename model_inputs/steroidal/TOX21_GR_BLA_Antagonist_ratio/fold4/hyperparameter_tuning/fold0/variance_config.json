@@ -1,0 +1,9 @@
+{ 
+"fs_name": "variance",
+"num_features": "100",
+"features": "../model_inputs/steroidal//TOX21_GR_BLA_Antagonist_ratio//fold4/hyperparameter_tuning/fold0//embeddings.csv",
+"output_dir": "../model_inputs/steroidal//TOX21_GR_BLA_Antagonist_ratio//fold4/hyperparameter_tuning/fold0/",
+"samples": "../model_inputs/steroidal//TOX21_GR_BLA_Antagonist_ratio//fold4/hyperparameter_tuning/fold0/train.txt",
+"feature_type": "embeddings",
+"fs_specific": {}
+ }
