@@ -6,9 +6,10 @@ from sklearn.metrics import matthews_corrcoef, roc_auc_score
 
 
 def main():
-    files = {'physchem': '//home/lisa-marie-rolli/gestagen_local_lisa/lisa-marie.rolli/comptox_benchmark//automatic_ToxCast_Query/physchem_properties.csv',
-             'maccs': '//home/lisa-marie-rolli/gestagen_local_lisa/lisa-marie.rolli/comptox_benchmark//automatic_ToxCast_Query/maccs.csv', 'morgan': '//home/lisa-marie-rolli/gestagen_local_lisa/lisa-marie.rolli/comptox_benchmark//automatic_ToxCast_Query/morgan.csv'}
+    files = {'physchem': 'model_inputs/physchem_properties.csv', 'maccs': 'model_inputs/maccs.csv', 'morgan': 'model_inputs/morgan.csv'}
     feature_types = ['maccs']
+    input_root = 'model_inputs'
+    response_root = 'ToxCastDownloads/binary_responses_and_datasail_input_files'
 
     rf_hyperparams = []
     for trees in range(100, 600, 200):
@@ -49,8 +50,8 @@ def main():
     }
 
     task = 'classification'
-    model_main = '//home/lisa-marie-rolli/gestagen_local_lisa/lisa-marie.rolli/comptox_benchmark//models/main_models.py'
-    json_config_gen = "//home/lisa-marie-rolli/gestagen_local_lisa/lisa-marie.rolli/comptox_benchmark//models/json_config_generator.sh"
+    model_main = 'models/main_models.py'
+    json_config_gen = "models/json_config_generator.sh"
     num_features = 100
     for feature_type in feature_types:
         for fs_name in ['pca', 'mrmr', 'mi', 'variance']:
@@ -83,7 +84,6 @@ def main():
                                 combi_dict = eval(combi)
                                 combi_val = 0
                                 for ht_fold in range(4):
-                                    training_samples = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/train.txt'
                                     test_samples = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/test.txt'
                                     features = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/{feature_type}_feature_names_{fs_name}.txt'
 
