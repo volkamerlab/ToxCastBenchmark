@@ -6,7 +6,6 @@ from Random_Forest import Random_Forest
 from Support_Vector_Machine import Support_Vector_Machine
 from Multi_Layer_Perceptron import MLP
 from CatBoost import Cat_Boost
-from Dummy_Baseline import Dummy_Baseline
 from TabPFN import TabPFN
 def warn(*args, **kwargs):
     pass
