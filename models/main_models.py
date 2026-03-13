@@ -28,8 +28,6 @@ def decide_model(data_json_dict):
         return MLP(data_json_dict)
     elif model_name == 'cat_boost':
         return Cat_Boost(data_json_dict)
-    elif model_name == 'dummy':
-        return Dummy_Baseline(data_json_dict)
     elif model_name == 'tabpfn':
         return TabPFN(data_json_dict)
     else:
