@@ -35,7 +35,7 @@ def main():
         for l2_leaf_reg in [0.001, 0.01, 0.1, 1]:
             for bootstrap_type in ['Bayesian', 'Bernoulli']:
                 cat_boost_hyperparams.append(
-                    '{"iterations": 1000, "bootstrap_type": "' + str(bootstrap_type) + '", "l2_leaf_reg" : '+str(l2_leaf_reg) + ', "depth" : '+str(depth) + ',  "task_type":"GPU", "logging_level":"Silent"}')
+                    '{"iterations": 1000, "bootstrap_type": "' + str(bootstrap_type) + '", "l2_leaf_reg" : '+str(l2_leaf_reg) + ', "depth" : '+str(depth) + ', "logging_level":"Silent"}')
 
     hyperparameters = {
         'mlp': mlp_hyperparams,
@@ -45,8 +45,8 @@ def main():
     }
 
     task = 'classification'
-    model_main = '/home/lisa-marie-rolli/comptox_benchmark//models/main_models.py'
-    json_config_gen = "/home/lisa-marie-rolli/comptox_benchmark//models/json_config_generator.sh"
+    model_main = '/local/lisa-marie.rolli/ToxCastBenchmark/models/main_models.py'
+    json_config_gen = "/local/lisa-marie.rolli/ToxCastBenchmark/models/json_config_generator.sh"
 
     feature_type = 'embeddings'
     for fs_name in ['MI', 'mrmr', 'variance', 'pca', 'none']:
@@ -57,16 +57,17 @@ def main():
             subfolders = ['progestagens', 'steroidal']
         for subfolder in subfolders:
 
-            directory = f'/home/lisa-marie-rolli/comptox_benchmark//ToxCast_Assays_Endpoint_Results/{subfolder}/'
-
-            for content in os.listdir(directory):
+            input_directory = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/{subfolder}/'
+            output_directory = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/{subfolder}/'
+            for content in os.listdir(input_directory):
                 if '.csv' in content:
                     continue
                 print(content)
-                path_to_CV_folds = f'{directory}/{content}/'
+                path_to_CV_folds = f'{input_directory}/{content}/'
+                output_final_results  = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/{subfolder}/{content}/'
                 pattern = f'{content}-*_binary_response.csv'
 
-                matching_files = glob.glob(f'{directory}/{pattern}')
+                matching_files = glob.glob(f'/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/{subfolder}/{pattern}')
 
                 if matching_files:
                     response = matching_files[0]
@@ -77,7 +78,7 @@ def main():
 
                     for fold in range(5):
                         if not final_models[fold]:
-                            with open(f'{path_to_CV_folds}/fold{fold}/final_models_{feature_type}_{fs_name}.txt', 'w') as output:
+                            with open(f'{output_final_results}/fold{fold}/final_models_{feature_type}_{fs_name}.txt', 'w') as output:
                                 output.write('')
                             final_models[fold] = True
                         # for hyperparameter combination
@@ -106,8 +107,8 @@ def main():
                                     '", "smiles": "", "morphological": "", "response": "' + response + \
                                     '", "hyperparameters": ' + \
                                     combi + '}'
-                                output_dir = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/'
-
+                                output_dir = f'/local/lisa-marie.rolli/ToxCastBenchmark/temp/{subfolder}/{content}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/'
+                                os.makedirs(output_dir, exist_ok=True)
                                 config_file_path = f'{output_dir}/{fs_name}_{model_name}_config.json'
                                 analysis_name = f'{model_name}_{feature_type}_{fs_name}'
                                 for hp in combi_dict.keys():
@@ -125,7 +126,7 @@ def main():
                             if combi_val > best_score:
                                 best_score = combi_val
                                 best_combi = combi
-                            with open(f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/{model_name}_combis_{feature_type}_{fs_name}.csv', 'a') as ht_val_file:
+                            with open(f'/local/lisa-marie.rolli/ToxCastBenchmark/temp/{subfolder}/{content}/fold{fold}//hyperparameter_tuning/{model_name}_combis_{feature_type}_{fs_name}.csv', 'a') as ht_val_file:
                                 ht_val_file.write(
                                     f'\n{analysis_name}\t{combi_val}')
 
@@ -141,7 +142,7 @@ def main():
 
                         training_samples = f'{path_to_CV_folds}/fold{fold}/train.txt'
                         test_samples = f'{path_to_CV_folds}/fold{fold}/test.txt'
-                        output_dir = f'{path_to_CV_folds}/fold{fold}/'
+                        output_dir = f'{output_final_results}/fold{fold}/'
                         model_specific = '{ "physchem": "", "maccs": "", "morgan": "' + \
                             feature_matrix_path + \
                             '", "smiles": "", "morphological": "", "response": "' + response + \
@@ -160,7 +161,7 @@ def main():
                             y_pred=res['predicted'].values, y_true=res['actual'].values)
                         auroc = roc_auc_score(
                             y_true=res['actual'], y_score=res.loc[:, 'p(1)'].values)
-                        with open(f'{path_to_CV_folds}/fold{fold}/final_models_{feature_type}_{fs_name}.txt', 'a') as output:
+                        with open(f'{output_final_results}/fold{fold}/final_models_{feature_type}_{fs_name}.txt', 'a') as output:
                             output.write(
                                 f'\n{model_name}\tfold{fold}\t{mcc}\t{auroc}')
 
