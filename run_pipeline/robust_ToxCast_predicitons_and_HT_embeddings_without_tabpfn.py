@@ -53,8 +53,7 @@ def main():
 
         subfolders = ['androgens', 'estrogens',
                       'glucocorticoids', 'progestagens', 'steroidal']
-        if fs_name == 'MI':
-            subfolders = ['progestagens', 'steroidal']
+
         for subfolder in subfolders:
 
             input_directory = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/{subfolder}/'
