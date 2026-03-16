@@ -1,0 +1,11 @@
+{ 
+"model_name": "cat_boost",
+"training_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/progestagens//CEETOX_H295R_PROG//fold3/train.txt",
+"test_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/progestagens//CEETOX_H295R_PROG//fold3/test.txt",
+"features": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/progestagens//CEETOX_H295R_PROG//fold3/embeddings_feature_names_MI.txt",
+"task": "classification",
+"analysis_name": "cat_boost_best_combi_embeddings_MI",
+"output_dir": "/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/progestagens/CEETOX_H295R_PROG//fold3/",
+"rand": "deterministic",
+"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/progestagens//CEETOX_H295R_PROG//fold3/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/progestagens/CEETOX_H295R_PROG-2025-07-11_binary_response.csv", "hyperparameters": {"iterations": 1000, "bootstrap_type": "Bernoulli", "l2_leaf_reg" : 0.1, "depth" : 4, "logging_level":"Silent"}}
+ }

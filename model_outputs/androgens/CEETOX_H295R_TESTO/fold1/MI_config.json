@@ -1,11 +1,11 @@
 { 
-"model_name": "cat_boost",
+"model_name": "svm",
 "training_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/androgens//CEETOX_H295R_TESTO//fold1/train.txt",
 "test_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/androgens//CEETOX_H295R_TESTO//fold1/test.txt",
 "features": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/androgens//CEETOX_H295R_TESTO//fold1/embeddings_feature_names_MI.txt",
 "task": "classification",
-"analysis_name": "cat_boost_best_combi_embeddings_MI",
+"analysis_name": "svm_best_combi_embeddings_MI",
 "output_dir": "/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/androgens/CEETOX_H295R_TESTO//fold1/",
 "rand": "deterministic",
-"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/androgens//CEETOX_H295R_TESTO//fold1/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/androgens/CEETOX_H295R_TESTO-2025-07-11_binary_response.csv", "hyperparameters": {"iterations": 1000, "bootstrap_type": "Bayesian", "l2_leaf_reg" : 1, "depth" : 7, "logging_level":"Silent"}}
+"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/androgens//CEETOX_H295R_TESTO//fold1/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/androgens/CEETOX_H295R_TESTO-2025-07-11_binary_response.csv", "hyperparameters": { "kernel": "rbf", "max_iter": 1000, "gamma": "scale" , "probability": "True", "class_weight": "balanced"}}
  }
