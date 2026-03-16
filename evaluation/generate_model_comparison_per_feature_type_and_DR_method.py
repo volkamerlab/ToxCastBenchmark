@@ -364,6 +364,7 @@ def main(args):
             if not assay_done:
                 continue
             else:
+                print(content)
                 results_df.reset_index(inplace=True, drop=True)
 
                 results_df['assay'] = [content for _ in range(len(results_df))]
