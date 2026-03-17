@@ -381,6 +381,7 @@ def main(args):
             'physchem': 'physicochemical properties',
             'morgan': 'Morgan fingerprints',
             'maccs': 'MACCS fingerprints',
+            'embeddings': 'Embeddings'
         }
 
         model_name_map = {
