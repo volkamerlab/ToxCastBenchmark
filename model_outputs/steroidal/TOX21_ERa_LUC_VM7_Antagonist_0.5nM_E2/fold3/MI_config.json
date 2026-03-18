@@ -1,0 +1,11 @@
+{ 
+"model_name": "cat_boost",
+"training_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_ERa_LUC_VM7_Antagonist_0.5nM_E2//fold3/train.txt",
+"test_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_ERa_LUC_VM7_Antagonist_0.5nM_E2//fold3/test.txt",
+"features": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_ERa_LUC_VM7_Antagonist_0.5nM_E2//fold3/embeddings_feature_names_MI.txt",
+"task": "classification",
+"analysis_name": "cat_boost_best_combi_embeddings_MI",
+"output_dir": "/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/steroidal/TOX21_ERa_LUC_VM7_Antagonist_0.5nM_E2//fold3/",
+"rand": "deterministic",
+"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_ERa_LUC_VM7_Antagonist_0.5nM_E2//fold3/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/TOX21_ERa_LUC_VM7_Antagonist_0.5nM_E2-2025-07-16_binary_response.csv", "hyperparameters": {"iterations": 1000, "bootstrap_type": "Bayesian", "l2_leaf_reg" : 1, "depth" : 4, "logging_level":"Silent"}}
+ }

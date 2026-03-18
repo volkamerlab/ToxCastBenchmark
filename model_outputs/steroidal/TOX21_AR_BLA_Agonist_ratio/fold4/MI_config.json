@@ -1,0 +1,11 @@
+{ 
+"model_name": "svm",
+"training_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_AR_BLA_Agonist_ratio//fold4/train.txt",
+"test_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_AR_BLA_Agonist_ratio//fold4/test.txt",
+"features": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_AR_BLA_Agonist_ratio//fold4/embeddings_feature_names_MI.txt",
+"task": "classification",
+"analysis_name": "svm_best_combi_embeddings_MI",
+"output_dir": "/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/steroidal/TOX21_AR_BLA_Agonist_ratio//fold4/",
+"rand": "deterministic",
+"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_AR_BLA_Agonist_ratio//fold4/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/TOX21_AR_BLA_Agonist_ratio-2025-07-14_binary_response.csv", "hyperparameters": { "kernel": "sigmoid", "max_iter": 1000, "gamma": "scale" , "probability": "True", "class_weight": "balanced"}}
+ }
