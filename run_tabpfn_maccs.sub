@@ -1,0 +1,24 @@
+universe = docker
+docker_image = pytorch/pytorch:2.3.1-cuda12.1-cudnn8-runtime
+
+executable = run_tabpfn_maccs.sh
+
+# Transfer the directories. This keeps the internal structure intact.
+transfer_input_files = run_pipeline, models
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT_OR_EVICT
+stream_output = True
+stream_error = True
+
+output = runlogs/tabpfn_maccs.$(ClusterId).$(ProcId).out
+error  = runlogs/tabpfn_maccs.$(ClusterId).$(ProcId).err
+log    = runlogs/tabpfn_maccs.$(ClusterId).log
+
+request_CPUs = 2
+request_memory = 16G
+request_GPUs = 1
+
++WantGPUHomeMounted = true
+
+queue 1
