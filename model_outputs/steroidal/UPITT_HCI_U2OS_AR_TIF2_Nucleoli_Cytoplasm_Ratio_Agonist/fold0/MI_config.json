@@ -1,0 +1,11 @@
+{ 
+"model_name": "mlp",
+"training_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Cytoplasm_Ratio_Agonist//fold0/train.txt",
+"test_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Cytoplasm_Ratio_Agonist//fold0/test.txt",
+"features": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Cytoplasm_Ratio_Agonist//fold0/embeddings_feature_names_MI.txt",
+"task": "classification",
+"analysis_name": "mlp_best_combi_embeddings_MI",
+"output_dir": "/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/steroidal/UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Cytoplasm_Ratio_Agonist//fold0/",
+"rand": "deterministic",
+"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Cytoplasm_Ratio_Agonist//fold0/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Cytoplasm_Ratio_Agonist-2025-07-16_binary_response.csv", "hyperparameters": {"early_stopping": "True", "alpha": 0.1, "hidden_layer_sizes" : "(50, 50)", "activation" : "tanh", "random_state": 42, "learning_rate": "adaptive", "solver": "adam", "batch_size": "auto"}}
+ }
