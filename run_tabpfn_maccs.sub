@@ -21,4 +21,5 @@ request_GPUs = 1
 
 +WantGPUHomeMounted = true
 
-queue 1
+arguments = $(ProcId) 10
+queue 10

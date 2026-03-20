@@ -13,4 +13,4 @@ pip install --no-cache-dir \
     tabpfn-extensions==0.1.6 \
     autogluon.tabular==1.4.0
 
-python3 run_pipeline/robust_ToxCast_predicitons_and_HT_maccs.py
+python3 run_pipeline/robust_ToxCast_predicitons_and_HT_maccs.py  "$1" "$2"

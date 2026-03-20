@@ -3,9 +3,12 @@ import subprocess
 import glob
 import pandas as pd
 from sklearn.metrics import matthews_corrcoef, roc_auc_score
-
+import sys
 
 def main():
+    job_index = int(sys.argv[1]) if len(sys.argv) > 1 else 0
+    num_jobs = int(sys.argv[2]) if len(sys.argv) > 2 else 1
+
     files = {'physchem': '/home/loar00001/ToxCastBenchmark/model_inputs/physchem_properties.csv', 'maccs': '/home/loar00001/ToxCastBenchmark/model_inputs/maccs.csv', 'morgan': '/home/loar00001/ToxCastBenchmark/model_inputs/morgan.csv'}
     feature_types = ['maccs']
     input_root = '/home/loar00001/ToxCastBenchmark/model_inputs'
@@ -63,7 +66,10 @@ def main():
                 assay_dir = os.path.join(input_root, subfolder)
                 response_dir = os.path.join(response_root, subfolder)
 
-                for content in os.listdir(assay_dir):
+                assays = sorted(os.listdir(assay_dir))
+                for i, content in enumerate(assays):
+                    if i % num_jobs != job_index:
+                        continue
                     if '.csv' in content:
                         continue
 
@@ -82,13 +88,10 @@ def main():
                         response = matching_files[0]
                     else:
                         continue
-                    final_models = [False for _ in range(5)]
+                        
                     for model_name in ['tabpfn']:
                         for fold in range(5):
-                            if not final_models[fold]:
-                                with open(f'{output_path_to_CV_folds}/fold{fold}/final_models_{feature_type}_{fs_name}.txt', 'w') as output:
-                                    output.write('')
-                                final_models[fold] = True
+                            os.makedirs(f'{output_path_to_CV_folds}/fold{fold}', exist_ok=True)
                             # for hyperparameter combination
                             if model_name != 'tabpfn':
                                 best_combi = None
