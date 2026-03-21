@@ -1,0 +1,11 @@
+{ 
+"model_name": "tabpfn",
+"training_samples": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/ACEA_AR_agonist_80hr/fold4/train.txt",
+"test_samples": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/ACEA_AR_agonist_80hr/fold4/test.txt",
+"features": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/ACEA_AR_agonist_80hr/fold4/maccs_feature_names_MI.txt",
+"task": "classification",
+"analysis_name": "tabpfn_best_combi_maccs_MI",
+"output_dir": "/home/loar00001/ToxCastBenchmark/model_outputs/steroidal/ACEA_AR_agonist_80hr/fold4",
+"rand": "deterministic",
+"model_specific": { "physchem": "", "maccs": "/home/loar00001/ToxCastBenchmark/model_inputs/maccs.csv", "morgan": "", "smiles": "", "morphological": "", "response": "/home/loar00001/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/ACEA_AR_agonist_80hr-2025-07-14_binary_response.csv", "hyperparameters": {"device":"cuda", "max_time":600}}
+ }
