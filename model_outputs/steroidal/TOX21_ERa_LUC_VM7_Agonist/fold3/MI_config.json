@@ -1,11 +1,11 @@
 { 
-"model_name": "svm",
-"training_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_ERa_LUC_VM7_Agonist//fold3/train.txt",
-"test_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_ERa_LUC_VM7_Agonist//fold3/test.txt",
-"features": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_ERa_LUC_VM7_Agonist//fold3/embeddings_feature_names_MI.txt",
+"model_name": "tabpfn",
+"training_samples": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/TOX21_ERa_LUC_VM7_Agonist/fold3/train.txt",
+"test_samples": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/TOX21_ERa_LUC_VM7_Agonist/fold3/test.txt",
+"features": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/TOX21_ERa_LUC_VM7_Agonist/fold3/maccs_feature_names_MI.txt",
 "task": "classification",
-"analysis_name": "svm_best_combi_embeddings_MI",
-"output_dir": "/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/steroidal/TOX21_ERa_LUC_VM7_Agonist//fold3/",
+"analysis_name": "tabpfn_best_combi_maccs_MI",
+"output_dir": "/home/loar00001/ToxCastBenchmark/model_outputs/steroidal/TOX21_ERa_LUC_VM7_Agonist/fold3",
 "rand": "deterministic",
-"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//TOX21_ERa_LUC_VM7_Agonist//fold3/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/TOX21_ERa_LUC_VM7_Agonist-2025-07-16_binary_response.csv", "hyperparameters": { "kernel": "linear", "max_iter": 1000, "gamma": "scale" , "probability": "True", "class_weight": "balanced"}}
+"model_specific": { "physchem": "", "maccs": "/home/loar00001/ToxCastBenchmark/model_inputs/maccs.csv", "morgan": "", "smiles": "", "morphological": "", "response": "/home/loar00001/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/TOX21_ERa_LUC_VM7_Agonist-2025-07-16_binary_response.csv", "hyperparameters": {"device":"cuda", "max_time":600}}
  }

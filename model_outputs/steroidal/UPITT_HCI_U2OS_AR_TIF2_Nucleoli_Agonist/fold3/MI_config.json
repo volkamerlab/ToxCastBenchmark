@@ -1,0 +1,11 @@
+{ 
+"model_name": "tabpfn",
+"training_samples": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Agonist/fold3/train.txt",
+"test_samples": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Agonist/fold3/test.txt",
+"features": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Agonist/fold3/maccs_feature_names_MI.txt",
+"task": "classification",
+"analysis_name": "tabpfn_best_combi_maccs_MI",
+"output_dir": "/home/loar00001/ToxCastBenchmark/model_outputs/steroidal/UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Agonist/fold3",
+"rand": "deterministic",
+"model_specific": { "physchem": "", "maccs": "/home/loar00001/ToxCastBenchmark/model_inputs/maccs.csv", "morgan": "", "smiles": "", "morphological": "", "response": "/home/loar00001/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/UPITT_HCI_U2OS_AR_TIF2_Nucleoli_Agonist-2025-07-16_binary_response.csv", "hyperparameters": {"device":"cuda", "max_time":600}}
+ }
