@@ -158,7 +158,7 @@ def parse_args():
     parser.add_argument("-d", '--directory', help="input_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/model_outputs/')
     parser.add_argument("--feature_type", '-f', help="Feature type used", default='morgan')
     parser.add_argument("--output_dir", '-o', help="Output_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/plotting_results/')
-
+    parser.add_argument("--tabpfn_missing", help="is TabPFN missing", default=False, type=bool)
     return parser.parse_args()
 
 
@@ -168,7 +168,7 @@ def main(args):
     final_results = None
     feature_type = args.feature_type
     out_dir = args.output_dir
-    num_models = [4,5]
+    num_models = 5 if (not bool(args.tabpfn_missing)) else 4
     for dr_method in ['MI', 'mrmr', 'pca', 'variance', 'none']:
         for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
             directory = f'{args.directory}/{subfolder}/'
@@ -193,7 +193,7 @@ def main(args):
                     except:
                         assay_done = False
                         break
-                    if not len(new_df) in num_models:
+                    if not len(new_df) == num_models:
                         assay_done = False
                         break
                     
@@ -222,6 +222,7 @@ def main(args):
         'physchem': 'physicochemical properties',
         'morgan': 'Morgan fingerprints',
         'maccs': 'MACCS fingerprints',
+        'embeddings': 'Embeddings'
     }
 
     model_name_map = {
