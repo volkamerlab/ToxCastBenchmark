@@ -56,17 +56,16 @@ def main():
 
         for subfolder in subfolders:
 
-            input_directory = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/{subfolder}/'
-            output_directory = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/{subfolder}/'
+            input_directory = f'../model_inputs/{subfolder}/'
             for content in os.listdir(input_directory):
                 if '.csv' in content:
                     continue
                 print(content)
                 path_to_CV_folds = f'{input_directory}/{content}/'
-                output_final_results  = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/{subfolder}/{content}/'
+                output_final_results  = f'../model_outputs/{subfolder}/{content}/'
                 pattern = f'{content}-*_binary_response.csv'
 
-                matching_files = glob.glob(f'/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/{subfolder}/{pattern}')
+                matching_files = glob.glob(f'../ToxCastDownloads/binary_responses_and_datasail_input_files/{subfolder}/{pattern}')
 
                 if matching_files:
                     response = matching_files[0]
@@ -93,7 +92,7 @@ def main():
                                 if not (feature_type == 'none'):
                                     features = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/{feature_type}_feature_names_{fs_name}.txt'
                                 else:
-                                    features = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/all_feature_names_{feature_type}.txt'
+                                    features = f'../model_inputs/all_feature_names_{feature_type}.txt'
 
                                 if not fs_name == 'pca':
                                     feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/embeddings.csv'
@@ -106,7 +105,7 @@ def main():
                                     '", "smiles": "", "morphological": "", "response": "' + response + \
                                     '", "hyperparameters": ' + \
                                     combi + '}'
-                                output_dir = f'/local/lisa-marie.rolli/ToxCastBenchmark/temp/{subfolder}/{content}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/'
+                                output_dir = f'../temp/{subfolder}/{content}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/'
                                 os.makedirs(output_dir, exist_ok=True)
                                 config_file_path = f'{output_dir}/{fs_name}_{model_name}_config.json'
                                 analysis_name = f'{model_name}_{feature_type}_{fs_name}'
@@ -125,7 +124,7 @@ def main():
                             if combi_val > best_score:
                                 best_score = combi_val
                                 best_combi = combi
-                            with open(f'/local/lisa-marie.rolli/ToxCastBenchmark/temp/{subfolder}/{content}/fold{fold}//hyperparameter_tuning/{model_name}_combis_{feature_type}_{fs_name}.csv', 'a') as ht_val_file:
+                            with open(f'../temp/{subfolder}/{content}/fold{fold}//hyperparameter_tuning/{model_name}_combis_{feature_type}_{fs_name}.csv', 'a') as ht_val_file:
                                 ht_val_file.write(
                                     f'\n{analysis_name}\t{combi_val}')
 
@@ -137,7 +136,7 @@ def main():
                         if not (feature_type == 'none'):
                             features = f'{path_to_CV_folds}/fold{fold}/{feature_type}_feature_names_{fs_name}.txt'
                         else:
-                            features = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/all_feature_names_{feature_type}.txt'
+                            features = f'../model_inputs/all_feature_names_{feature_type}.txt'
 
                         training_samples = f'{path_to_CV_folds}/fold{fold}/train.txt'
                         test_samples = f'{path_to_CV_folds}/fold{fold}/test.txt'
