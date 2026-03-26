@@ -13,7 +13,7 @@ def main(delta_and_epsilon = 0.05):
         df = pd.read_csv(assay_filname, sep='\t')
         assay_name = assay_filname.split('/')[-1]
         match = re.match(r"^(.*?)(-\d{4}-\d{2}-\d{2})", assay_name)
-        subfolder = assay_filname.split('/')[5]
+        subfolder = assay_filname.split('/')[3]
         if not subfolder in ['steroidal', 'androgens', 'estrogens', 'progestagens', 'glucocorticoids']:
             continue
         if match:
@@ -79,4 +79,7 @@ def main(delta_and_epsilon = 0.05):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    if len(sys.argv) > 1:
+        main(float(sys.argv[1]))
+    else:
+        main()
