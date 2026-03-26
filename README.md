@@ -3,7 +3,7 @@ This repository contains code and data for our comprehensive benchmarking study 
 Our repo contains our scripts for the following parts:
 
 ## 1. Data processing
-* To reproduce our splits, you have to run the ```run_datasail.py``` script in ```data_processing``` folder. You can set one value for ```epsilon``` and ```delta``` via the command line. We first ran datasail with ```epsilon = delta = 0.05```, which is also the default of datasail. Then, we increased them to ```0.1```, ```0.2```, and ```0.3```. Note that we only ran datasail with relaxed constraints for assays that were not feasible with lower ```epsilon``` and ```delta``` values.
+* To reproduce our splits, you have to run the ```run_datasail.py``` script in ```data_processing``` folder. You can set one value for ```epsilon``` and ```delta``` via the command line. We first ran datasail with ```epsilon = delta = 0.05```, which is also the default of datasail. Then, we increased them to ```0.1```, ```0.2```, and ```0.3```. Note that we only ran datasail with relaxed constraints for assays that were not feasible with lower ```epsilon``` and ```delta``` values. To run datasail, you need to create a conda environment using the ```data_processing/datasail_env.yml``` file.
 * To generate a dummy dimension reduction (DR) file for the "no DR" experiments, you can run ```generate_feature_name_list_no_DR.py``` in ```data_processing```.
 * ```data_processing``` also contains a script to generate the embeddings
 
@@ -14,3 +14,5 @@ Our repo contains our scripts for the following parts:
 
 ## 3. Models
 * In ```run_pipeline```, we provide two python scripts ```robust_ToxCast_predicitons_and_HT.py``` and ```execute_DR_on_embeddings.py```, that run all models with all DR methods for a compound representation given via the command line. Notably, for ```morgan``` and ```embeddings```, we could not run TabPFN without DR, as we use the version that only supports 500 features.
+
+**Note**: For all scripts except the datasail script, we provide a conda environment file called ```benchmarking_environment.yml```. Moreover, we use relative paths in our scripts, so, you have to run them in the folder, where they are located. If you want to run our scripts from somewhere else, you need to adjust the paths respectively.
