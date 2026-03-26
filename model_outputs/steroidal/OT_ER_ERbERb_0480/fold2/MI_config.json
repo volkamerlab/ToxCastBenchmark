@@ -1,11 +1,11 @@
 { 
-"model_name": "tabpfn",
-"training_samples": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/OT_ER_ERbERb_0480/fold2/train.txt",
-"test_samples": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/OT_ER_ERbERb_0480/fold2/test.txt",
-"features": "/home/loar00001/ToxCastBenchmark/model_inputs/steroidal/OT_ER_ERbERb_0480/fold2/maccs_feature_names_MI.txt",
+"model_name": "mlp",
+"training_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//OT_ER_ERbERb_0480//fold2/train.txt",
+"test_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//OT_ER_ERbERb_0480//fold2/test.txt",
+"features": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//OT_ER_ERbERb_0480//fold2/embeddings_feature_names_MI.txt",
 "task": "classification",
-"analysis_name": "tabpfn_best_combi_maccs_MI",
-"output_dir": "/home/loar00001/ToxCastBenchmark/model_outputs/steroidal/OT_ER_ERbERb_0480/fold2",
+"analysis_name": "mlp_best_combi_embeddings_MI",
+"output_dir": "/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/steroidal/OT_ER_ERbERb_0480//fold2/",
 "rand": "deterministic",
-"model_specific": { "physchem": "", "maccs": "/home/loar00001/ToxCastBenchmark/model_inputs/maccs.csv", "morgan": "", "smiles": "", "morphological": "", "response": "/home/loar00001/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/OT_ER_ERbERb_0480-2025-07-14_binary_response.csv", "hyperparameters": {"device":"cuda", "max_time":600}}
+"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//OT_ER_ERbERb_0480//fold2/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/OT_ER_ERbERb_0480-2025-07-14_binary_response.csv", "hyperparameters": {"early_stopping": "True", "alpha": 1e-05, "hidden_layer_sizes" : "(100, 100)", "activation" : "relu", "random_state": 42, "learning_rate": "adaptive", "solver": "adam", "batch_size": "auto"}}
  }
