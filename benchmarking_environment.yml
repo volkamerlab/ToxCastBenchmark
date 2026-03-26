@@ -1,0 +1,21 @@
+name: benchmarking-environment
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - tabpfn=2.2.1
+  - scikit-learn=1.6.1
+  - pandas=2.3.3
+  - numpy=2.3.5
+  - tabpfn-extensions=0.1.6
+  - autogluon.tabular=1.4.0
+  - catboost=1.2.8
+  - scipy=1.16.2
+  - statsmodels=0.14.5
+  - matplotlib=3.10.7
+  - seaborn=0.13.2
+  - pip
+  - pip:
+      - mrmr-selection==0.2.8
+
