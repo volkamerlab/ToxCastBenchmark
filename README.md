@@ -10,6 +10,7 @@ Our repo contains our scripts for the following parts:
 
 ## 2. Dimension Reduction
 * The dimension reduction (DR) methds are implemented in the ```dr_methods``` folder. It contains a ```main_dimension_reduction.py```, which can be called to run any of the implemented DR methods given a config file. To generate config files, we provide a bash script called ```json_config_generator.sh```.
-* In ```run_pipeline```, we provide two python scripts ```exectute_DR_on_ToxCast_Downloads.py``` and ```execute_DR_on_embeddings.py```, that run the dimension reduction for all train test splits and all feature types considered in our study.
+* In ```run_pipeline```, we provide two python scripts ```execute_DR_on_ToxCast_Downloads.py``` and ```execute_DR_on_embeddings.py```, that run the dimension reduction for all train test splits and all feature types considered in our study.
 
 ## 3. Models
+* In ```run_pipeline```, we provide two python scripts ```robust_ToxCast_predicitons_and_HT.py``` and ```execute_DR_on_embeddings.py```, that run all models with all DR methods for a compound representation given via the command line. Notably, for ```morgan``` and ```embeddings```, we could not run TabPFN without DR, as we use the version that only supports 500 features.
