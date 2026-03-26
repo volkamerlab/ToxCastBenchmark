@@ -5,8 +5,8 @@ import subprocess
 
 def main():
     task = 'classification'
-    fs_main = '../fs_methods/main_feature_selection.py'
-    json_config_gen = "..//fs_methods/json_config_generator.sh"
+    dr_main = '../dr_methods/main_dimension_reduction.py'
+    json_config_gen = "../dr_methods/json_config_generator.sh"
     num_features = 100
 
 
@@ -42,7 +42,7 @@ def main():
                     config_file_path = f'{output_dir}/{fs_name}_config.json'
                     subprocess.run(['bash', json_config_gen,
                                     fs_name, str(num_features), f'{output_dir}/embeddings.csv', output_dir, samples, model_specific[fs_name], 'embeddings', config_file_path])
-                    subprocess.run(['python3', fs_main, config_file_path])
+                    subprocess.run(['python3', dr_main, config_file_path])
 
                 for ht_fold in range(4):
                     samples = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/train.txt'
@@ -53,7 +53,7 @@ def main():
                         subprocess.run(args=['bash', json_config_gen,
                                                 fs_name, str(num_features), f'{output_dir}/embeddings.csv', output_dir, samples, model_specific[fs_name], 'embeddings', config_file_path])
                         subprocess.run(
-                            ['python3', fs_main, config_file_path])
+                            ['python3', dr_main, config_file_path])
 
 
 if __name__ == '__main__':
