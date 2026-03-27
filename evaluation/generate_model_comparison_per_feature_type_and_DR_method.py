@@ -15,10 +15,9 @@ custom_palette = {
     "rf": "#c82254",
     "mlp": "#d7df23",
     "cat_boost": "#004877",
-    "svm": "#000000",
-    "tabpfn": "#6e6e6e"
+    "svm": "#000000"
 }
-model_order = ["rf", "cat_boost", "tabpfn", 'mlp', 'svm']
+model_order = ["rf", "cat_boost", 'mlp', 'svm']
 
 
 
@@ -395,8 +394,10 @@ def main(args):
             "cat_boost": "CatBoost",
         }
 
-    if not args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']:
+    if not (args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']):
         model_name_map["tabpfn"] =  "TabPFN"
+        custom_palette['tabpfn']  = "#6e6e6e"
+        model_order =  ["rf", "cat_boost", "tabpfn", 'mlp', 'svm']
     print(final_results)
     create_boxplots_per_assay(final_results=final_results, dr_method=dr_method, feature_name_map=feature_name_map, feature_type=feature_type, model_name_map=model_name_map, output_dir=out_dir)
     cd_plot_for_nemenyi(final_results, dr_method, model_name_map, feature_type, feature_name_map, output_dir=out_dir)
