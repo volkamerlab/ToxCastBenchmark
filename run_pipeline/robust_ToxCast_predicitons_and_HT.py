@@ -92,7 +92,7 @@ def main(feature_type):
                                     if not dr_name == 'none':
                                         features = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/{feature_type}_feature_names_{dr_name}.txt'
                                     else:
-                                        features = f'../model_inputs/all_feature_names_{dr_name}.txt'
+                                        features = f'../model_inputs/all_feature_names_{feature_type}.txt'
                                     if not dr_name == 'pca':
                                         feature_matrix_path = files[feature_type]
 
@@ -137,7 +137,11 @@ def main(feature_type):
 
                         else:
                             feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/{feature_type}_transformed_matrix_pca.csv'
-                        features = f'{path_to_CV_folds}/fold{fold}/{feature_type}_feature_names_{dr_name}.txt'
+                        if dr_name != 'none':
+                            features = f'{path_to_CV_folds}/fold{fold}/{feature_type}_feature_names_{dr_name}.txt'
+                        else:
+                            features = f'../model_inputs/all_feature_names_{feature_type}.txt'
+                            
                         training_samples = f'{path_to_CV_folds}/fold{fold}/train.txt'
                         test_samples = f'{path_to_CV_folds}/fold{fold}/test.txt'
                         output_dir = f'../temp/{subfolder}/{content}/fold{fold}'

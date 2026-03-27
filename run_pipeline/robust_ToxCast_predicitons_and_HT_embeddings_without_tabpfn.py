@@ -50,7 +50,7 @@ def main():
     json_config_gen = "../models/json_config_generator.sh"
 
     feature_type = 'embeddings'
-    for fs_name in ['MI', 'mrmr', 'variance', 'pca', 'none']:
+    for dr_name in ['MI', 'mrmr', 'variance', 'pca', 'none']:
 
         subfolders = ['androgens', 'estrogens',
                       'glucocorticoids', 'progestagens', 'steroidal']
@@ -77,7 +77,7 @@ def main():
 
                     for fold in range(5):
                         if not final_models[fold]:
-                            with open(f'{output_final_results}/fold{fold}/final_models_{feature_type}_{fs_name}.txt', 'w') as output:
+                            with open(f'{output_final_results}/fold{fold}/final_models_{feature_type}_{dr_name}.txt', 'w') as output:
                                 output.write('')
                             final_models[fold] = True
                         # for hyperparameter combination
@@ -90,12 +90,12 @@ def main():
                                 for ht_fold in range(4):
                                     training_samples = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/train.txt'
                                     test_samples = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/test.txt'
-                                    if not (feature_type == 'none'):
-                                        features = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/{feature_type}_feature_names_{fs_name}.txt'
+                                    if not (dr_name == 'none'):
+                                        features = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/{feature_type}_feature_names_{dr_name}.txt'
                                     else:
                                         features = f'../model_inputs/all_feature_names_{feature_type}.txt'
 
-                                    if not fs_name == 'pca':
+                                    if not dr_name == 'pca':
                                         feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/embeddings.csv'
 
                                     else:
@@ -108,8 +108,8 @@ def main():
                                         combi + '}'
                                     output_dir = f'../temp/{subfolder}/{content}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/'
                                     os.makedirs(output_dir, exist_ok=True)
-                                    config_file_path = f'{output_dir}/{fs_name}_{model_name}_config.json'
-                                    analysis_name = f'{model_name}_{feature_type}_{fs_name}'
+                                    config_file_path = f'{output_dir}/{dr_name}_{model_name}_config.json'
+                                    analysis_name = f'{model_name}_{feature_type}_{dr_name}'
                                     for hp in combi_dict.keys():
                                         analysis_name += f'_{hp}_{combi_dict[hp]}'
                                     subprocess.run(args=['bash', json_config_gen,
@@ -125,20 +125,20 @@ def main():
                                 if combi_val > best_score:
                                     best_score = combi_val
                                     best_combi = combi
-                                with open(f'../temp/{subfolder}/{content}/fold{fold}//hyperparameter_tuning/{model_name}_combis_{feature_type}_{fs_name}.csv', 'a') as ht_val_file:
+                                with open(f'../temp/{subfolder}/{content}/fold{fold}//hyperparameter_tuning/{model_name}_combis_{feature_type}_{dr_name}.csv', 'a') as ht_val_file:
                                     ht_val_file.write(
                                         f'\n{analysis_name}\t{combi_val}')
                         else:
                             best_combi = hyperparameters['tabpfn'][0]
 
 
-                        if not fs_name == 'pca':
+                        if not dr_name == 'pca':
                             feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/embeddings.csv'
 
                         else:
                             feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/{feature_type}_transformed_matrix_pca.csv'
-                        if not (feature_type == 'none'):
-                            features = f'{path_to_CV_folds}/fold{fold}/{feature_type}_feature_names_{fs_name}.txt'
+                        if not (dr_name == 'none'):
+                            features = f'{path_to_CV_folds}/fold{fold}/{feature_type}_feature_names_{dr_name}.txt'
                         else:
                             features = f'../model_inputs/all_feature_names_{feature_type}.txt'
 
@@ -150,8 +150,8 @@ def main():
                             '", "smiles": "", "morphological": "", "response": "' + response + \
                             '", "hyperparameters": ' + \
                             best_combi + '}'
-                        analysis_name = f'{model_name}_best_combi_{feature_type}_{fs_name}'
-                        config_file_path = f'{output_dir}/{fs_name}_config.json'
+                        analysis_name = f'{model_name}_best_combi_{feature_type}_{dr_name}'
+                        config_file_path = f'{output_dir}/{dr_name}_config.json'
                         subprocess.run(args=['bash', json_config_gen,
                                              model_name, training_samples, test_samples, features, output_dir, 'deterministic', model_specific, task, analysis_name, config_file_path])
 
@@ -163,7 +163,7 @@ def main():
                             y_pred=res['predicted'].values, y_true=res['actual'].values)
                         auroc = roc_auc_score(
                             y_true=res['actual'], y_score=res.loc[:, 'p(1)'].values)
-                        with open(f'{output_final_results}/fold{fold}/final_models_{feature_type}_{fs_name}.txt', 'a') as output:
+                        with open(f'{output_final_results}/fold{fold}/final_models_{feature_type}_{dr_name}.txt', 'a') as output:
                             output.write(
                                 f'\n{model_name}\tfold{fold}\t{mcc}\t{auroc}')
 
