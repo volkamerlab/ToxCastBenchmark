@@ -42,31 +42,31 @@ def main():
         'rf':  rf_hyperparams,
         'svm':  svm_hyperparams,
         'cat_boost': cat_boost_hyperparams,
+        'tabpfn': ['{"device":"cuda", "max_time":600}']
     }
 
     task = 'classification'
-    model_main = '/local/lisa-marie.rolli/ToxCastBenchmark/models/main_models.py'
-    json_config_gen = "/local/lisa-marie.rolli/ToxCastBenchmark/models/json_config_generator.sh"
+    model_main = '../models/main_models.py'
+    json_config_gen = "../models/json_config_generator.sh"
 
     feature_type = 'embeddings'
-    for fs_name in ['MI', 'mrmr', 'variance', 'pca', 'none']:
+    for dr_name in ['MI', 'mrmr', 'variance', 'pca', 'none']:
 
         subfolders = ['androgens', 'estrogens',
                       'glucocorticoids', 'progestagens', 'steroidal']
 
         for subfolder in subfolders:
 
-            input_directory = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/{subfolder}/'
-            output_directory = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/{subfolder}/'
+            input_directory = f'../model_inputs/{subfolder}/'
             for content in os.listdir(input_directory):
                 if '.csv' in content:
                     continue
                 print(content)
                 path_to_CV_folds = f'{input_directory}/{content}/'
-                output_final_results  = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/{subfolder}/{content}/'
+                output_final_results  = f'../model_outputs/{subfolder}/{content}/'
                 pattern = f'{content}-*_binary_response.csv'
 
-                matching_files = glob.glob(f'/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/{subfolder}/{pattern}')
+                matching_files = glob.glob(f'../ToxCastDownloads/binary_responses_and_datasail_input_files/{subfolder}/{pattern}')
 
                 if matching_files:
                     response = matching_files[0]
@@ -77,67 +77,70 @@ def main():
 
                     for fold in range(5):
                         if not final_models[fold]:
-                            with open(f'{output_final_results}/fold{fold}/final_models_{feature_type}_{fs_name}.txt', 'w') as output:
+                            with open(f'{output_final_results}/fold{fold}/final_models_{feature_type}_{dr_name}.txt', 'w') as output:
                                 output.write('')
                             final_models[fold] = True
                         # for hyperparameter combination
+                        if not (model_name == 'tabpfn'):
+                            best_combi = None
+                            best_score = -1
+                            for combi in hyperparameters[model_name]:
+                                combi_dict = eval(combi)
+                                combi_val = 0
+                                for ht_fold in range(4):
+                                    training_samples = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/train.txt'
+                                    test_samples = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/test.txt'
+                                    if not (dr_name == 'none'):
+                                        features = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/{feature_type}_feature_names_{dr_name}.txt'
+                                    else:
+                                        features = f'../model_inputs/all_feature_names_{feature_type}.txt'
 
-                        best_combi = None
-                        best_score = -1
-                        for combi in hyperparameters[model_name]:
-                            combi_dict = eval(combi)
-                            combi_val = 0
-                            for ht_fold in range(4):
-                                training_samples = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/train.txt'
-                                test_samples = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/test.txt'
-                                if not (feature_type == 'none'):
-                                    features = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/{feature_type}_feature_names_{fs_name}.txt'
-                                else:
-                                    features = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/all_feature_names_{feature_type}.txt'
+                                    if not dr_name == 'pca':
+                                        feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/embeddings.csv'
 
-                                if not fs_name == 'pca':
-                                    feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/embeddings.csv'
+                                    else:
+                                        feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/{feature_type}_transformed_matrix_pca.csv'
 
-                                else:
-                                    feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/{feature_type}_transformed_matrix_pca.csv'
+                                    model_specific = '{ "physchem": "", "maccs": "", "morgan": "' + \
+                                        feature_matrix_path + \
+                                        '", "smiles": "", "morphological": "", "response": "' + response + \
+                                        '", "hyperparameters": ' + \
+                                        combi + '}'
+                                    output_dir = f'../temp/{subfolder}/{content}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/'
+                                    os.makedirs(output_dir, exist_ok=True)
+                                    config_file_path = f'{output_dir}/{dr_name}_{model_name}_config.json'
+                                    analysis_name = f'{model_name}_{feature_type}_{dr_name}'
+                                    for hp in combi_dict.keys():
+                                        analysis_name += f'_{hp}_{combi_dict[hp]}'
+                                    subprocess.run(args=['bash', json_config_gen,
+                                                        model_name, training_samples, test_samples, features, output_dir, 'deterministic', model_specific, task, analysis_name, config_file_path])
+                                    subprocess.run(
+                                        ['python3', model_main, config_file_path])
+                                    res = pd.read_csv(
+                                        f'{output_dir}/{analysis_name}_test_predictions.csv', sep='\t')
+                                    mcc = matthews_corrcoef(
+                                        y_pred=res['predicted'].values, y_true=res['actual'].values)
+                                    combi_val += mcc
+                                combi_val /= 4
+                                if combi_val > best_score:
+                                    best_score = combi_val
+                                    best_combi = combi
+                                with open(f'../temp/{subfolder}/{content}/fold{fold}//hyperparameter_tuning/{model_name}_combis_{feature_type}_{dr_name}.csv', 'a') as ht_val_file:
+                                    ht_val_file.write(
+                                        f'\n{analysis_name}\t{combi_val}')
+                        else:
+                            best_combi = hyperparameters['tabpfn'][0]
 
-                                model_specific = '{ "physchem": "", "maccs": "", "morgan": "' + \
-                                    feature_matrix_path + \
-                                    '", "smiles": "", "morphological": "", "response": "' + response + \
-                                    '", "hyperparameters": ' + \
-                                    combi + '}'
-                                output_dir = f'/local/lisa-marie.rolli/ToxCastBenchmark/temp/{subfolder}/{content}/fold{fold}/hyperparameter_tuning/fold{ht_fold}/'
-                                os.makedirs(output_dir, exist_ok=True)
-                                config_file_path = f'{output_dir}/{fs_name}_{model_name}_config.json'
-                                analysis_name = f'{model_name}_{feature_type}_{fs_name}'
-                                for hp in combi_dict.keys():
-                                    analysis_name += f'_{hp}_{combi_dict[hp]}'
-                                subprocess.run(args=['bash', json_config_gen,
-                                                     model_name, training_samples, test_samples, features, output_dir, 'deterministic', model_specific, task, analysis_name, config_file_path])
-                                subprocess.run(
-                                    ['python3', model_main, config_file_path])
-                                res = pd.read_csv(
-                                    f'{output_dir}/{analysis_name}_test_predictions.csv', sep='\t')
-                                mcc = matthews_corrcoef(
-                                    y_pred=res['predicted'].values, y_true=res['actual'].values)
-                                combi_val += mcc
-                            combi_val /= 4
-                            if combi_val > best_score:
-                                best_score = combi_val
-                                best_combi = combi
-                            with open(f'/local/lisa-marie.rolli/ToxCastBenchmark/temp/{subfolder}/{content}/fold{fold}//hyperparameter_tuning/{model_name}_combis_{feature_type}_{fs_name}.csv', 'a') as ht_val_file:
-                                ht_val_file.write(
-                                    f'\n{analysis_name}\t{combi_val}')
 
-                        if not fs_name == 'pca':
+                        if not dr_name == 'pca':
                             feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/embeddings.csv'
 
                         else:
                             feature_matrix_path = f'{path_to_CV_folds}/fold{fold}/{feature_type}_transformed_matrix_pca.csv'
-                        if not (feature_type == 'none'):
-                            features = f'{path_to_CV_folds}/fold{fold}/{feature_type}_feature_names_{fs_name}.txt'
+                        if not (dr_name == 'none'):
+                            features = f'{path_to_CV_folds}/fold{fold}/{feature_type}_feature_names_{dr_name}.txt'
                         else:
-                            features = f'/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/all_feature_names_{feature_type}.txt'
+                            features = f'../model_inputs/all_feature_names_{feature_type}.txt'
 
                         training_samples = f'{path_to_CV_folds}/fold{fold}/train.txt'
                         test_samples = f'{path_to_CV_folds}/fold{fold}/test.txt'
@@ -147,8 +150,8 @@ def main():
                             '", "smiles": "", "morphological": "", "response": "' + response + \
                             '", "hyperparameters": ' + \
                             best_combi + '}'
-                        analysis_name = f'{model_name}_best_combi_{feature_type}_{fs_name}'
-                        config_file_path = f'{output_dir}/{fs_name}_config.json'
+                        analysis_name = f'{model_name}_best_combi_{feature_type}_{dr_name}'
+                        config_file_path = f'{output_dir}/{dr_name}_config.json'
                         subprocess.run(args=['bash', json_config_gen,
                                              model_name, training_samples, test_samples, features, output_dir, 'deterministic', model_specific, task, analysis_name, config_file_path])
 
@@ -160,7 +163,7 @@ def main():
                             y_pred=res['predicted'].values, y_true=res['actual'].values)
                         auroc = roc_auc_score(
                             y_true=res['actual'], y_score=res.loc[:, 'p(1)'].values)
-                        with open(f'{output_final_results}/fold{fold}/final_models_{feature_type}_{fs_name}.txt', 'a') as output:
+                        with open(f'{output_final_results}/fold{fold}/final_models_{feature_type}_{dr_name}.txt', 'a') as output:
                             output.write(
                                 f'\n{model_name}\tfold{fold}\t{mcc}\t{auroc}')
 

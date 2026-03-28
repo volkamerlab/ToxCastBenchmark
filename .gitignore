@@ -1,6 +1,7 @@
-*__pychache__/*
+**/__pycache__/
+*.pyc
 models/__pychache__/*
 *TabPFNModels
 temp/*
 run_pipeline/catboost_info/*
-*config.json
+**/*config.json

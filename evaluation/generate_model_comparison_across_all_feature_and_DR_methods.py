@@ -13,7 +13,7 @@ custom_palette = {
     "mlp": "#a3a919",
     "cat_boost": "#004877",
     "svm": "#000000",
-    "tabpfn": "#6e6e6e"
+    
 }
 
 
@@ -29,6 +29,7 @@ def inverse_fisher_z(z):
 
 def cd_plot_for_nemenyi(final_results, model_name_map, output_dir):
     final_results['mcc_z'] = fisher_z(final_results['mcc'])
+
     means = (
         final_results.groupby(['assay', 'model'], as_index=False)['mcc_z']
         .mean()
@@ -157,7 +158,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Evaluation of 5 fold CV results comparing DR methods across all assays with one feature-DR combination")
     parser.add_argument("-d", '--directory', help="input_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/model_outputs/')
     parser.add_argument("--output_dir", '-o', help="Output_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/plotting_results/')
-    parser.add_argument("--tabpfn_missing", help="is TabPFN missing", default=False, type=bool)
+    parser.add_argument("--tabpfn_missing", help="is TabPFN missing", default='False', type=str)
     return parser.parse_args()
 
 
@@ -166,8 +167,9 @@ def main(args):
 
     final_results = None
     out_dir = args.output_dir
-    num_models = [5] if (not bool(args.tabpfn_missing)) else [4, 5]
-    print(num_models)
+    num_models = 5 if (not args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']) else 4
+    if not args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']:
+        custom_palette["tabpfn"] =  "#6e6e6e"
     for dr_method in ['MI', 'mrmr', 'pca', 'variance', 'none']:
         for feature_type in ['morgan', 'maccs', 'physchem']:
             for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
@@ -193,9 +195,13 @@ def main(args):
                         except:
                             assay_done = False
                             break
-                        if not len(new_df) in num_models:
+                        if (args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']) and ('tabpfn' in new_df['model'].values ):
+                            # tabpfn is run for this setting, but we don't want to evaluate it
+                            new_df = new_df.loc[new_df['model'] != 'tabpfn', :]
+                        if len(new_df) < num_models:
                             assay_done = False
                             break
+                        
                         
                         if results_df is None:
                             results_df = new_df
@@ -219,15 +225,15 @@ def main(args):
                     
                 
 
-
+    
     model_name_map = {
         "rf": "RF",
         "mlp": "MLP",
         "svm": "SVM",
-        "cat_boost": "CatBoost",
-        "tabpfn": "TabPFN"
+        "cat_boost": "CatBoost"
     }
-
+    if not args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']:
+        model_name_map["tabpfn"] =  "TabPFN"
 
     cd_plot_for_nemenyi(final_results, model_name_map, output_dir=out_dir)
 

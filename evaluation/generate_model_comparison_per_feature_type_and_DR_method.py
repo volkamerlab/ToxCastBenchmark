@@ -15,10 +15,9 @@ custom_palette = {
     "rf": "#c82254",
     "mlp": "#d7df23",
     "cat_boost": "#004877",
-    "svm": "#000000",
-    "tabpfn": "#6e6e6e"
+    "svm": "#000000"
 }
-model_order = ["rf", "cat_boost", "tabpfn", 'mlp', 'svm']
+model_order = ["rf", "cat_boost", 'mlp', 'svm']
 
 
 
@@ -320,7 +319,7 @@ def parse_args():
     parser.add_argument("--dr_method", help="DR method used", default='MI')
     parser.add_argument("--feature_type", '-f', help="Feature type used", default='physchem')
     parser.add_argument("--output_dir", '-o', help="Output_directory", default='/home/lisa-marie-rolli/ToxCastBenchmark/plotting_results/')
-    parser.add_argument("--tabpfn_missing", help="is TabPFN missing", default=False, type=bool)
+    parser.add_argument("--tabpfn_missing", help="is TabPFN missing", default='False', type=str)
     return parser.parse_args()
 
 
@@ -331,7 +330,7 @@ def main(args):
     dr_method = args.dr_method
     feature_type = args.feature_type
     out_dir = args.output_dir
-    num_models = 5 if not bool(args.tabpfn_missing) else 4
+    num_models = 5 if (not args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']) else 4
     for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
         directory = f'{args.directory}/{subfolder}/'
 
@@ -352,7 +351,11 @@ def main(args):
                 except:
                     assay_done = False
                     break
-                if not len(new_df) == num_models:
+
+                if (args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']) and ('tabpfn' in new_df['model'].values ):
+                    # tabpfn is run for this setting, but we don't want to evaluate it
+                    new_df = new_df.loc[new_df['model'] != 'tabpfn', :]
+                if len(new_df) < num_models:
                     assay_done = False
                     break
                 
@@ -389,9 +392,12 @@ def main(args):
             "mlp": "MLP",
             "svm": "SVM",
             "cat_boost": "CatBoost",
-            "tabpfn": "TabPFN"
         }
 
+    if not (args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']):
+        model_name_map["tabpfn"] =  "TabPFN"
+        custom_palette['tabpfn']  = "#6e6e6e"
+        model_order =  ["rf", "cat_boost", "tabpfn", 'mlp', 'svm']
     print(final_results)
     create_boxplots_per_assay(final_results=final_results, dr_method=dr_method, feature_name_map=feature_name_map, feature_type=feature_type, model_name_map=model_name_map, output_dir=out_dir)
     cd_plot_for_nemenyi(final_results, dr_method, model_name_map, feature_type, feature_name_map, output_dir=out_dir)

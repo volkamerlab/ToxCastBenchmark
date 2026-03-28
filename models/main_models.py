@@ -6,7 +6,7 @@ from Random_Forest import Random_Forest
 from Support_Vector_Machine import Support_Vector_Machine
 from Multi_Layer_Perceptron import MLP
 from CatBoost import Cat_Boost
-from TabPFN import TabPFN
+#from TabPFN import TabPFN
 def warn(*args, **kwargs):
     pass
 import warnings
@@ -28,8 +28,8 @@ def decide_model(data_json_dict):
         return MLP(data_json_dict)
     elif model_name == 'cat_boost':
         return Cat_Boost(data_json_dict)
-    elif model_name == 'tabpfn':
-        return TabPFN(data_json_dict)
+    #elif model_name == 'tabpfn':
+    #    return TabPFN(data_json_dict)
     else:
         print("The model " + model_name + " is not supported")
         raise NotImplementedError
