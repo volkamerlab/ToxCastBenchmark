@@ -3,3 +3,4 @@ rf	fold0	0.0
 mlp	fold0	0.0
 svm	fold0	0.0018248549039540218
 cat_boost	fold0	0.0
+tabpfn	fold0	0.0	0.5975656455142232
