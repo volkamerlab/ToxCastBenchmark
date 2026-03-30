@@ -48,6 +48,16 @@ class Base_Model():
         '''
         matrix = pd.read_csv(matrix_file, sep='\t')
         matrix.set_index(matrix.columns.values[0], drop=True, inplace=True)
+        if matrix.isna().any().any():
+            old_rows = set(matrix.index.to_list())
+            matrix.dropna(inplace=True, ignore_index=False)
+            new_rows = set(matrix.index.to_list())
+            to_remove = sorted(old_rows - new_rows)
+            for sample in to_remove:
+                if sample in self._test_samples:
+                    self._test_samples.remove(sample)
+                elif sample in self._training_samples:
+                    self._training_samples.remove(sample)
         return matrix
 
     def combine_feature_types(self, feature_list: list):
