@@ -48,9 +48,10 @@ class Base_Model():
         '''
         matrix = pd.read_csv(matrix_file, sep='\t')
         matrix.set_index(matrix.columns.values[0], drop=True, inplace=True)
-        if matrix.isna().any().any():
+        if matrix.isna().any().any() or np.isinf(matrix.values).any():
             old_rows = set(matrix.index.to_list())
             matrix.dropna(inplace=True, ignore_index=False)
+            matrix = matrix[~np.isinf(matrix).any(axis=1)]
             new_rows = set(matrix.index.to_list())
             to_remove = sorted(old_rows - new_rows)
             for sample in to_remove:
