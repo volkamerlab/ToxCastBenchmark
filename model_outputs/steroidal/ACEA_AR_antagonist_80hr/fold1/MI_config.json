@@ -1,11 +1,11 @@
 { 
-"model_name": "rf",
+"model_name": "svm",
 "training_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//ACEA_AR_antagonist_80hr//fold1/train.txt",
 "test_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//ACEA_AR_antagonist_80hr//fold1/test.txt",
 "features": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//ACEA_AR_antagonist_80hr//fold1/embeddings_feature_names_MI.txt",
 "task": "classification",
-"analysis_name": "rf_best_combi_embeddings_MI",
+"analysis_name": "svm_best_combi_embeddings_MI",
 "output_dir": "/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/steroidal/ACEA_AR_antagonist_80hr//fold1/",
 "rand": "deterministic",
-"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//ACEA_AR_antagonist_80hr//fold1/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/ACEA_AR_antagonist_80hr-2025-07-14_binary_response.csv", "hyperparameters": { "min_samples_leaf": 5, "n_estimators": 500, "max_depth": 10, "random_state": 42, "class_weight": "balanced", "n_jobs": -1}}
+"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//ACEA_AR_antagonist_80hr//fold1/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/ACEA_AR_antagonist_80hr-2025-07-14_binary_response.csv", "hyperparameters": { "kernel": "poly", "max_iter": 1000, "gamma": "scale" , "probability": "True", "class_weight": "balanced"}}
  }

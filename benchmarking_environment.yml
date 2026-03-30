@@ -18,4 +18,5 @@ dependencies:
   - pip
   - pip:
       - mrmr-selection==0.2.8
+      - scikit-posthocs==0.12.0
 
