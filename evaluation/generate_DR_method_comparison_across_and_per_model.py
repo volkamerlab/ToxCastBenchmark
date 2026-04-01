@@ -63,7 +63,7 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
     # generate p-value heat map
     plt.close('all')
 
-    norm = TwoSlopeNorm(vmin=pvals.values.min(),
+    norm = TwoSlopeNorm(vmin=min(pvals.values.min(), 0.04),
                         vmax=pvals.values.max(), vcenter=0.05)
 
     cmap = LinearSegmentedColormap.from_list(
