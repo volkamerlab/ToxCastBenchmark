@@ -7,7 +7,7 @@ from scipy.stats import friedmanchisquare, f
 import scikit_posthocs as sp
 from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
 import argparse
-
+import copy
 custom_palette = {
     "physchem": "#c82254",
     "embeddings": "#a3a919",
@@ -27,7 +27,7 @@ def inverse_fisher_z(z):
     return np.tanh(z)
 
 
-def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir):
+def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir, model = None):
     final_results['mcc_z'] = fisher_z(final_results['mcc'])
     means = (
         final_results.groupby(['assay', 'feature_type'],
@@ -92,9 +92,12 @@ def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir):
     plt.title(
         f"Compound representation comparison across assays, models, and DR methods")
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/nemenyi_pval_heatmap_comparing_feature_types.png',
-                dpi=300, transparent=False)
-
+    if model is None:
+        plt.savefig(f'{output_dir}/nemenyi_pval_heatmap_comparing_feature_types.png',
+                    dpi=300, transparent=False)
+    else:
+        plt.savefig(f'{output_dir}/nemenyi_pval_heatmap_comparing_feature_types_{model}.png',
+                    dpi=300, transparent=False)
     pvals.index = avg_ranks.index
     pvals.columns = avg_ranks.index
 
@@ -115,9 +118,12 @@ def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir):
     plt.title(
         f"Critical difference\nrepresentation comparison across assays, models, and DR methods")
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/critical_difference_plot_nemenyi_comparing_representations.png',
-                dpi=300, transparent=False)
-
+    if model is None:
+        plt.savefig(f'{output_dir}/critical_difference_plot_nemenyi_comparing_representations.png',
+                    dpi=300, transparent=False)
+    else:
+        plt.savefig(f'{output_dir}/critical_difference_plot_nemenyi_comparing_representations_{model}.png',
+                    dpi=300, transparent=False)
 
 def pairwise_friedman_nemenyi(data):
     # Pivot the data to have one column per model and one row per subject
@@ -240,8 +246,12 @@ def main(args):
         "mlp": "MLP",
         "svm": "SVM",
         "cat_boost": "CatBoost",
-        "tabpfn": "TabPFN"
+        
     }
+    if not (args.tabpfn_missing in [
+                       'y', 'yes', 'true', 't', 'True']):
+        model_name_map["tabpfn"] = 'TabPFN'
+
     dr_name_map = {
         "pca": "PCA",
         "mrmr": "MRMR",
@@ -250,7 +260,13 @@ def main(args):
         "none": "No DR"
     }
 
-    cd_plot_for_nemenyi(final_results, feature_name_map, output_dir=out_dir)
+    cd_plot_for_nemenyi(copy.deepcopy(final_results),
+                        feature_name_map=feature_name_map, output_dir=out_dir)
+    for model in model_name_map.keys():
+        cd_plot_for_nemenyi(final_results=copy.deepcopy(final_results.loc[final_results['model'] == model, :]), feature_name_map=feature_name_map, output_dir=out_dir, model = model)
+
+
+
 
 
 if __name__ == "__main__":
