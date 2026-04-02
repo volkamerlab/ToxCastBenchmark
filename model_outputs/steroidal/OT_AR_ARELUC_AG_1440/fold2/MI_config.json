@@ -1,11 +1,11 @@
 { 
-"model_name": "mlp",
+"model_name": "svm",
 "training_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//OT_AR_ARELUC_AG_1440//fold2/train.txt",
 "test_samples": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//OT_AR_ARELUC_AG_1440//fold2/test.txt",
 "features": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//OT_AR_ARELUC_AG_1440//fold2/embeddings_feature_names_MI.txt",
 "task": "classification",
-"analysis_name": "mlp_best_combi_embeddings_MI",
+"analysis_name": "svm_best_combi_embeddings_MI",
 "output_dir": "/local/lisa-marie.rolli/ToxCastBenchmark/model_outputs/steroidal/OT_AR_ARELUC_AG_1440//fold2/",
 "rand": "deterministic",
-"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//OT_AR_ARELUC_AG_1440//fold2/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/OT_AR_ARELUC_AG_1440-2025-07-14_binary_response.csv", "hyperparameters": {"early_stopping": "True", "alpha": 1, "hidden_layer_sizes" : "(100, 100, 100)", "activation" : "tanh", "random_state": 42, "learning_rate": "adaptive", "solver": "adam", "batch_size": "auto"}}
+"model_specific": { "physchem": "", "maccs": "", "morgan": "/local/lisa-marie.rolli/ToxCastBenchmark/model_inputs/steroidal//OT_AR_ARELUC_AG_1440//fold2/embeddings.csv", "smiles": "", "morphological": "", "response": "/local/lisa-marie.rolli/ToxCastBenchmark/ToxCastDownloads/binary_responses_and_datasail_input_files/steroidal/OT_AR_ARELUC_AG_1440-2025-07-14_binary_response.csv", "hyperparameters": { "kernel": "poly", "max_iter": 1000, "gamma": "scale" , "probability": "True", "class_weight": "balanced"}}
  }

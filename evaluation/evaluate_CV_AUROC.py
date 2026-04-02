@@ -1,4 +1,3 @@
-import itertools
 import pandas as pd
 import numpy as np
 import os
@@ -6,294 +5,218 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.patches as patches
 from matplotlib.patches import Patch
-import matplotlib.lines as mlines
-from statsmodels.stats.multitest import multipletests
-from scipy.stats import wilcoxon
+from scipy.stats import friedmanchisquare, f
 import math
-from sklearn.metrics import roc_auc_score
+import scikit_posthocs as sp
+from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
+import argparse
+
 custom_palette = {
     "rf": "#c82254",
     "mlp": "#d7df23",
     "cat_boost": "#004877",
-    "svm": "#000000",
-    "tabpfn": "#6e6e6e"
+    "svm": "#000000"
 }
-model_order = ["rf", "cat_boost", "tabpfn", 'mlp', 'svm']
+model_order = ["rf", "cat_boost", 'mlp', 'svm']
 
 
-def pairwise_tests(data):
-    results = []
-    models = data["model"].unique()
-    for m1, m2 in itertools.combinations(models, 2):
-        d1 = data.loc[data["model"] == m1, "auroc"].values
-        d2 = data.loc[data["model"] == m2, "auroc"].values
+# Fisher Z-transformation
+def fisher_z(r):
+    return np.arctanh(np.clip(r, -0.999999, 0.999999))  # avoid ±1
 
-        stat, pval = wilcoxon(d1, d2)
-        results.append((m1, m2, pval))
-    pvals = [p for (_, _, p) in results]
-    reject, pvals_corrected, _, _ = multipletests(
-        pvals, method="fdr_bh")
-    results_corrected = [(m1, m2, pvals_corrected[i])
-                         for i, (m1, m2, _) in enumerate(results)]
-    return results_corrected
+# Inverse Fisher Z-transformation
 
 
-def facet_plot(data, **kwargs):
-    ax = plt.gca()
+def inverse_fisher_z(z):
+    return np.tanh(z)
 
-    # ---- custom spacing ----
-    gap = 0.5           # distance between categories (<1 makes them closer)
-    width = 0.4         # box width (independent of gap!)
-    positions = [i * gap for i in range(len(model_order))]
 
-    medians = {}
-    # Draw each model’s box manually
-    for pos, m in zip(positions, model_order):
-        y = data.loc[data["model"] == m, "auroc"].dropna().values
-        if y.size == 0:
-            continue
+def cd_plot_for_nemenyi(final_results, dr_method, model_name_map, feature_type, feature_name_map, output_dir):
 
-        bp = ax.boxplot(
-            y,
-            positions=[pos],
-            widths=width,
-            whis=(5, 95),
-            patch_artist=True,
-            manage_ticks=False
-        )
-
-        # Style
-        for box in bp["boxes"]:
-            box.set(facecolor=custom_palette[m], alpha=0.4, edgecolor="black")
-        for med in bp["medians"]:
-            med.set(color="black", linewidth=2)
-        for wh in bp["whiskers"]:
-            wh.set(color="black")
-        for cap in bp["caps"]:
-            cap.set(color="black")
-
-        # Save median
-        medians[m] = y.mean() if y.size == 0 else np.mean(y)
-
-        # Overlay fold points
-        ax.scatter(
-            [pos] * len(y), y,
-            s=50, color=custom_palette[m], edgecolors="black", linewidths=1,
-            zorder=3
-        )
-
-    # Connect folds across models
-    for fold, sub in data.groupby("fold"):
-        xs, ys = [], []
-        for pos, m in zip(positions, model_order):
-            row = sub[sub["model"] == m]
-            if row.empty:
-                continue
-            xs.append(pos)
-            ys.append(row["auroc"].iloc[0])
-        if len(xs) >= 2:
-            ax.plot(xs, ys, color="lightgrey", alpha=0.6, zorder=0)
-
-    # Reference line
-    ax.axhline(y=0.5, color="black", linestyle="--", linewidth=1)
-
-    # ---- Highlight best median ----
-    if medians:
-        best_model = max(medians, key=medians.get)
-        best_pos = positions[model_order.index(best_model)]
-        best_median = medians[best_model]
-
-        # Rectangle around the box
-        rect = patches.Rectangle(
-            # x,y lower-left
-            (best_pos - width/2 - 0.05, min(data["auroc"]) - 0.02),
-            width + 0.1, max(data["auroc"]) -
-            min(data["auroc"]) + 0.04,  # width,height
-            linewidth=2, edgecolor="black", facecolor="none", zorder=4
-        )
-        ax.add_patch(rect)
-
-    ymax = data["auroc"].max()
-    h = 0.05  # height of significance bars
-    results = pairwise_tests(data)
-
-    for i, (m1, m2, pval) in enumerate(results):
-        d1 = data[data["model"] == m1]["auroc"].values
-        d2 = data[data["model"] == m2]["auroc"].values
-
-        # x positions from model_order
-        x1, x2 = positions[model_order.index(
-            m1)], positions[model_order.index(m2)]
-        y = ymax + h*i
-
-        ax.plot([x1, x1, x2, x2], [y, y+h, y+h, y], lw=1.5, c="black")
-        if pval < 0.05:
-            ax.text((x1+x2)/2, y+h, f"p={pval:.3f}",
-                    ha="center", va="bottom", c='red', fontsize=14)
-        else:
-            ax.text((x1+x2)/2, y+h, f"p={pval:.3f}",
-                    ha="center", va="bottom", c='black', fontsize=14)
-
-    # Cosmetic cleanup
-    ax.set_xticks([])
-    ax.set_xlabel("")  # will set assay outside
-    ax.set_xlim(positions[0] - width/2-0.1, positions[-1] + width/2+0.1)
-    ax.tick_params(axis="y", labelsize=14)
-    # ax.set_ylim(-0.5,1)
-    return ax
-
-def across_assay_test(final_results, dr_method, model_name_map):
-    # Compute the mean auroc per assay and model (averaging over folds)
-    assay_means = (
-        final_results.groupby(["assay", "model"])["auroc"]
+    means = (
+        final_results.groupby(['assay', 'model'], as_index=False)['auroc']
         .mean()
-        .reset_index()
     )
 
-    # Pivot to wide format: each column = model, each row = assay
-    assay_matrix = assay_means.pivot(index="assay", columns="model", values="auroc")
+    wide = means.pivot(index='assay', columns='model', values='auroc')
 
-    # Perform pairwise Wilcoxon signed-rank tests across assays
-    model_names = assay_matrix.columns.tolist()
-    results_global = []
-    for m1, m2 in itertools.combinations(model_names, 2):
-        # Drop NaNs (some assays might be missing)
-        valid = assay_matrix[[m1, m2]].dropna()
-        if valid.empty:
-            continue
-        stat, pval = wilcoxon(valid[m1], valid[m2])
-        results_global.append((m1, m2, pval))
+    # Rank per assay (rank 1 = best; higher auroc is better)
 
-    # Correct for multiple comparisons (FDR)
-    pvals = [p for (_, _, p) in results_global]
-    reject, pvals_corr, _, _ = multipletests(pvals, method="fdr_bh")
+    ranks = wide.rank(axis=1, ascending=False, method='average')
 
-    results_global_corrected = []
-    for i, (m1, m2, p) in enumerate(results_global):
-        results_global_corrected.append({
-            "Model 1": m1,
-            "Model 2": m2,
-            "p_uncorrected": p,
-            "p_corrected": pvals_corr[i],
-            "Significant (FDR<0.05)": reject[i]
-        })
+    # Average ranks
 
-    global_results_df = pd.DataFrame(results_global_corrected)
+    avg_ranks = ranks.mean(axis=0)
+    models = [model_name_map[m] for m in avg_ranks.index]
+    wide = means.pivot(index='assay', columns='model', values='auroc')
+    avg_auroc = wide.mean(axis=0)
+    avg_auroc = avg_auroc.apply(inverse_fisher_z)
 
-    summary_df = assay_means.copy()
+    pretty_names = {
+        m: f"{model_name_map [m]}\navg. ROC-AUC={avg_auroc[m]:.3f}" for m in avg_ranks.index}
+    avg_ranks.index = [pretty_names[m] for m in avg_ranks.index]
 
-    # Create the plot
-    fig, ax = plt.subplots(figsize=(8, 6))
+    # Nemenyi p-values (pairwise)
 
-    gap = 0.5
-    width = 0.4
-    positions = [i * gap for i in range(len(model_order))]
-    medians = {}
+    pvals = sp.posthoc_nemenyi_friedman(ranks.values)
+    pvals.index = models
+    pvals.columns = models
 
-    for pos, m in zip(positions, model_order):
-        y = summary_df.loc[summary_df["model"] == m, "auroc"].dropna().values
-        if y.size == 0:
-            continue
+    # generate p-value heat map
+    plt.close('all')
+    norm = TwoSlopeNorm(vmin=pvals.values.min(),
+                        vmax=pvals.values.max(), vcenter=0.05)
 
-        bp = ax.boxplot(
-            y,
-            positions=[pos],
-            widths=width,
-            whis=(5, 95),
-            patch_artist=True,
-            manage_ticks=False
-        )
+    cmap = LinearSegmentedColormap.from_list(
+        "p-values", ["#c82254", '#D3D3D3', "#004877"])
+    mask = np.eye(len(pvals), dtype=bool)
 
-        # Style
-        for box in bp["boxes"]:
-            box.set(facecolor=custom_palette[m], alpha=0.4, edgecolor="black")
-        for med in bp["medians"]:
-            med.set(color="black", linewidth=2)
-        for wh in bp["whiskers"]:
-            wh.set(color="black")
-        for cap in bp["caps"]:
-            cap.set(color="black")
+    annot = np.empty(pvals.shape, dtype=object)
+    for i in range(pvals.shape[0]):
+        for j in range(pvals.shape[1]):
+            if i == j:
+                annot[i, j] = ""
+            else:
+                annot[i, j] = f"{pvals.iat[i,j]:.1e}"
 
-        ax.scatter(
-            [pos] * len(y),
-            y,
-            s=70, color=custom_palette[m],
-            edgecolors="black", linewidths=1, zorder=3
-        )
+    sns.heatmap(
+        pvals,
+        cmap=cmap,
+        mask=mask,
+        norm=norm,
+        vmin=0,
+        fmt="",
+        vmax=1,
+        cbar_kws={"label": "p-value"},
+        annot=annot,
+    )
 
-        medians[m] = np.mean(y)
-
-    # Highlight best mean
-    if medians:
-        best_model = max(medians, key=medians.get)
-        best_pos = positions[model_order.index(best_model)]
-        rect = patches.Rectangle(
-            (best_pos - width/2 - 0.05, min(summary_df["auroc"]) - 0.02),
-            width + 0.1,
-            max(summary_df["auroc"]) - min(summary_df["auroc"]) + 0.04,
-            linewidth=2, edgecolor="black", facecolor="none", zorder=4
-        )
-        ax.add_patch(rect)
-
-    # Add global significance bars
-    ymax = summary_df["auroc"].max()
-    h = 0.05
-    for i, (m1, m2, pval) in enumerate(zip(global_results_df["Model 1"],
-                                           global_results_df["Model 2"],
-                                           global_results_df["p_corrected"])):
-        x1, x2 = positions[model_order.index(m1)], positions[model_order.index(m2)]
-        y = ymax + h * i
-        ax.plot([x1, x1, x2, x2], [y, y + h, y + h, y], lw=1.5, c="black")
-        color = 'red' if pval < 0.05 else 'black'
-        ax.text((x1 + x2) / 2, y + h, f"p={pval:.3f}", ha="center", va="bottom", c=color, fontsize=12)
-
-    ax.set_xticks(positions)
-    ax.set_xticklabels([model_name_map[m]for m in model_order], fontsize=14, rotation = 45)
-    ax.set_ylabel("Mean AUROC per assay", fontsize=16)
-    ax.tick_params(axis="y", labelsize=14)
-    ax.axhline(y=0, color="black", linestyle="--", linewidth=1)
-
+    plt.title(
+        f"Model comparison across assays on \n{feature_name_map[feature_type]} using {dr_method}")
     plt.tight_layout()
-    plt.savefig(
-        f"/home/lisa-marie-rolli//comptox_benchmark/ToxCast_Assays_Endpoint_Results/{dr_method}_global_summary_physchem.png",
-        dpi=300
+    plt.savefig(f'{output_dir}/{dr_method}_{feature_type}_nemenyi_pval_heatmap_AUROC.png',
+                dpi=300, transparent=False)
+
+    pvals.index = avg_ranks.index
+    pvals.columns = avg_ranks.index
+
+    # Generate CD diagram
+
+    plt.close('all')
+    color_palette = {pretty_names[m]: custom_palette[m]
+                     for m in pretty_names.keys()}
+    color_palette[f'{pretty_names["mlp"]}'] = '#a3a919'
+    _ = sp.critical_difference_diagram(
+        ranks=avg_ranks,
+        sig_matrix=pvals,
+        alpha=0.05,
+        label_fmt_left="{label}\navg. rank: {rank:.2f}",
+        label_fmt_right="{label}\navg. rank: {rank:.2f}",
+        color_palette=color_palette
     )
-    plt.close(fig)
+    plt.title(
+        f"Critical difference\nmodel comparison across assays on \n{feature_name_map[feature_type]} using {dr_method}")
+    plt.tight_layout()
+    plt.savefig(f'{output_dir}/{dr_method}_{feature_type}_critical_difference_plot_nemenyi_AUROC.png',
+                dpi=300, transparent=False)
 
 
-def main():
+def pairwise_friedman_nemenyi(data):
+    # Pivot the data to have one column per model and one row per subject
+    pivoted = data.pivot(index='fold', columns='model', values='auroc')
+    # Drop rows with missing values (if any)
+    pivoted = pivoted.dropna()
+
+    # Run Friedman test with correction by Iman and Davenport (1980)
+    friedman_stat, p = friedmanchisquare(*pivoted.values.T)
+    N = len(np.unique(data['fold']))
+    k = len(np.unique(data['model']))
+    iman_davenport_correction = (
+        (N - 1) * friedman_stat) / (N * (k - 1) - friedman_stat)
+
+    # Compute p-value from F distribution
+    p_id = 1 - f.cdf(iman_davenport_correction, k - 1, (k - 1) * (N - 1))
+
+    # Nemenyi post-hoc test (only if Friedman is significant)
+    if p_id < 0.05:
+        nemenyi = sp.posthoc_nemenyi_friedman(pivoted.values)
+        nemenyi.columns = pivoted.columns
+        nemenyi.index = pivoted.columns
+
+        results = []
+        for i in range(len(nemenyi)):
+            for j in range(i + 1, len(nemenyi)):
+                model1 = nemenyi.index[i]
+                model2 = nemenyi.columns[j]
+                pval = nemenyi.iloc[i, j]
+                results.append((model1, model2, pval))
+        return results
+
+    else:
+
+        return []
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Evaluation of 5 fold CV results comparing models across all assays with one feature-DR combination")
+    parser.add_argument("-d", '--directory',
+                        help="input_directory", default='../model_outputs/')
+    parser.add_argument("--dr_method", help="DR method used", default='MI')
+    parser.add_argument("--feature_type", '-f',
+                        help="Feature type used", default='physchem')
+    parser.add_argument("--output_dir", '-o',
+                        help="Output_directory", default='../plotting_results/')
+    parser.add_argument("--tabpfn_missing",
+                        help="is TabPFN missing", default='False', type=str)
+    return parser.parse_args()
+
+
+def main(args):
 
     final_results = None
-    dr_method = 'mrmr'
+    dr_method = args.dr_method
+    feature_type = args.feature_type
+    out_dir = args.output_dir
+    num_models = 5 if (not args.tabpfn_missing in [
+                       'y', 'yes', 'true', 't', 'True']) else 4
     for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
-
-        directory = f'/home/lisa-marie-rolli//comptox_benchmark/ToxCast_Assays_Endpoint_Results/{subfolder}/'
+        directory = f'{args.directory}/{subfolder}/'
 
         for content in os.listdir(directory):
+
             if '.csv' in content:
                 continue
             if '.png' in content:
                 continue
+
             results_df = None
             assay_done = True
             for fold in range(5):
                 try:
                     new_df = pd.read_csv(
-                        f'{directory}/{content}/fold{fold}/final_models_physchem_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
+                        f'{directory}/{content}/fold{fold}/final_models_{args.feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
+
                 except:
                     assay_done = False
                     break
-                if not len(new_df) == 5:
+
+                if (args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']) and ('tabpfn' in new_df['model'].values):
+                    # tabpfn is run for this setting, but we don't want to evaluate it
+                    new_df = new_df.loc[new_df['model'] != 'tabpfn', :]
+                if len(new_df) < num_models:
                     assay_done = False
                     break
-                
+
                 if results_df is None:
                     results_df = new_df
                 else:
                     results_df = pd.concat([results_df, new_df], axis=0)
+
             if not assay_done:
                 continue
             else:
+                print(content)
                 results_df.reset_index(inplace=True, drop=True)
 
                 results_df['assay'] = [content for _ in range(len(results_df))]
@@ -303,52 +226,31 @@ def main():
                     final_results = pd.concat(
                         [final_results, results_df.copy(deep=True)])
                     final_results.reset_index(inplace=True, drop=True)
-            
-            # Fix the order of models on the x-axis (so folds line up correctly)
+
+        feature_name_map = {
+            'physchem': 'physicochemical properties',
+            'morgan': 'Morgan fingerprints',
+            'maccs': 'MACCS fingerprints',
+            'embeddings': 'Embeddings'
+        }
 
         model_name_map = {
-            "rf": "Random Forest",
-            "mlp": "Multi-layer Perceptron",
-            "svm": "Support Vector Machine",
+            "rf": "RF",
+            "mlp": "MLP",
+            "svm": "SVM",
             "cat_boost": "CatBoost",
-            "tabpfn": "TabPFN"
         }
-    
-    g = sns.FacetGrid(final_results, col="assay",
-                      col_wrap=4, sharey=True, height=5)
-    g.map_dataframe(facet_plot)
 
-    # Global y-axis label
-    g.set_ylabels("AUROC", fontsize=16)
-    # g.set_ylabels("ROC-AUC", fontsize=16)
+    if not (args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']):
+        model_name_map["tabpfn"] = "TabPFN"
+        custom_palette['tabpfn'] = "#6e6e6e"
+        model_order.append('tabpfn')
+    print(final_results)
 
-    g.set_titles("{col_name}", size=14)
-    # Global title
-    g.figure.subplots_adjust(top=0.8)
-    g.figure.suptitle(
-        f"Model performance on physicochemical properties with {dr_method.upper()}", fontsize=18, y=1)
-
-    # One global legend
-    legend_elements = [
-        Patch(facecolor=custom_palette[m],
-              edgecolor="black", label=model_name_map[m])
-        for m in model_order
-    ]
+    cd_plot_for_nemenyi(final_results, dr_method, model_name_map,
+                        feature_type, feature_name_map, output_dir=out_dir)
 
 
-    for ax in g.axes.flat:
-        box = ax.get_position()
-        ax.set_position(
-            [box.x0, box.y0 - (0.07 / (math.ceil(len(final_results['assay'].unique()) / 4))), box.width, box.height + (0.05 / (math.ceil(len(final_results['assay'].unique()) / 4)))])
-    g.figure.legend(handles=legend_elements, title="Model", loc="lower center",
-                    bbox_to_anchor=(0.5, 0), ncol=len(legend_elements), fontsize=13, title_fontsize=14)
-
-    plt.tight_layout()
-    plt.savefig(
-        f'/home/lisa-marie-rolli//comptox_benchmark/ToxCast_Assays_Endpoint_Results//{dr_method}_physchem_auroc.png')
-    return
-    across_assay_test(final_results, dr_method, model_name_map)
-
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)
