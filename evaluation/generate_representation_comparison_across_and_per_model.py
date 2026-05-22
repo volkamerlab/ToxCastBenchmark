@@ -27,7 +27,7 @@ def inverse_fisher_z(z):
     return np.tanh(z)
 
 
-def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir, model = None):
+def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir, model=None):
     final_results['mcc_z'] = fisher_z(final_results['mcc'])
     means = (
         final_results.groupby(['assay', 'feature_type'],
@@ -125,16 +125,17 @@ def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir, model = Non
         plt.savefig(f'{output_dir}/critical_difference_plot_nemenyi_comparing_representations_{model}.png',
                     dpi=300, transparent=False)
 
+
 def pairwise_friedman_nemenyi(data):
     # Pivot the data to have one column per model and one row per subject
-    pivoted = data.pivot(index='fold', columns='dr_method', values='mcc')
+    pivoted = data.pivot(index='fold', columns='feature_type', values='mcc')
     # Drop rows with missing values (if any)
     pivoted = pivoted.dropna()
 
     # Run Friedman test with correction by Iman and Davenport (1980)
     friedman_stat, p = friedmanchisquare(*pivoted.values.T)
     N = len(np.unique(data['fold']))
-    k = len(np.unique(data['dr_method']))
+    k = len(np.unique(data['feature_type']))
     iman_davenport_correction = (
         (N - 1) * friedman_stat) / (N * (k - 1) - friedman_stat)
 
@@ -246,10 +247,10 @@ def main(args):
         "mlp": "MLP",
         "svm": "SVM",
         "cat_boost": "CatBoost",
-        
+
     }
     if not (args.tabpfn_missing in [
-                       'y', 'yes', 'true', 't', 'True']):
+            'y', 'yes', 'true', 't', 'True']):
         model_name_map["tabpfn"] = 'TabPFN'
 
     dr_name_map = {
@@ -263,10 +264,8 @@ def main(args):
     cd_plot_for_nemenyi(copy.deepcopy(final_results),
                         feature_name_map=feature_name_map, output_dir=out_dir)
     for model in model_name_map.keys():
-        cd_plot_for_nemenyi(final_results=copy.deepcopy(final_results.loc[final_results['model'] == model, :]), feature_name_map=feature_name_map, output_dir=out_dir, model = model)
-
-
-
+        cd_plot_for_nemenyi(final_results=copy.deepcopy(
+            final_results.loc[final_results['model'] == model, :]), feature_name_map=feature_name_map, output_dir=out_dir, model=model)
 
 
 if __name__ == "__main__":

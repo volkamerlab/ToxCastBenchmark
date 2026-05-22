@@ -66,7 +66,6 @@ def cd_plot_for_nemenyi(final_results, dr_method, model_name_map, feature_type, 
     # generate p-value heat map
     plt.close('all')
 
-
     norm = TwoSlopeNorm(vmin=min(pvals.values.min(), 0.04),
                         vmax=pvals.values.max(), vcenter=0.05)
 
@@ -344,6 +343,7 @@ def main(args):
     num_models = 5 if (not args.tabpfn_missing in [
                        'y', 'yes', 'true', 't', 'True']) else 4
     for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
+        # for subfolder in ['androgens', 'estrogens']:
         directory = f'{args.directory}/{subfolder}/'
 
         for content in os.listdir(directory):
@@ -409,6 +409,7 @@ def main(args):
         custom_palette['tabpfn'] = "#6e6e6e"
         model_order.append('tabpfn')
     print(final_results)
+    print(final_results.loc[final_results.duplicated(), :])
     create_boxplots_per_assay(final_results=final_results, dr_method=dr_method, feature_name_map=feature_name_map,
                               feature_type=feature_type, model_name_map=model_name_map, output_dir=out_dir)
     cd_plot_for_nemenyi(final_results, dr_method, model_name_map,
