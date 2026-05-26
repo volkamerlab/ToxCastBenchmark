@@ -29,7 +29,7 @@ def inverse_fisher_z(z):
     return np.tanh(z)
 
 
-def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_map, output_dir, model = None):
+def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_map, output_dir, model=None):
     final_results['mcc_z'] = fisher_z(final_results['mcc'])
     means = (
         final_results.groupby(['assay', 'dr_method'], as_index=False)['mcc_z']
@@ -126,6 +126,7 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
         plt.savefig(f'{output_dir}/{feature_type}_critical_difference_plot_nemenyi_comparing_DR_methods_{model}.png',
                     dpi=300, transparent=False)
 
+
 def pairwise_friedman_nemenyi(data):
     # Pivot the data to have one column per model and one row per subject
     pivoted = data.pivot(index='fold', columns='dr_method', values='mcc')
@@ -207,13 +208,13 @@ def main(args):
                     except:
                         assay_done = False
                         break
-                    if len(new_df) < num_models:
-                        assay_done = False
-                        break
-                    elif len(new_df) > num_models:
+                    if (args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']) and ('tabpfn' in new_df['model'].values):
                         # tabpfn is run for this setting, but we don't want to evaluate it
                         new_df = new_df.loc[new_df['model'] != 'tabpfn', :]
 
+                    if len(new_df) < num_models:
+                        assay_done = False
+                        break
                     if results_df is None:
                         results_df = new_df
                     else:
@@ -234,7 +235,7 @@ def main(args):
                         final_results = pd.concat(
                             [final_results, results_df.copy(deep=True)])
                         final_results.reset_index(inplace=True, drop=True)
-
+    print(final_results)
     feature_name_map = {
         'physchem': 'physicochemical properties',
         'morgan': 'Morgan fingerprints',
@@ -247,10 +248,10 @@ def main(args):
         "mlp": "MLP",
         "svm": "SVM",
         "cat_boost": "CatBoost",
-        
+
     }
-    if not(args.tabpfn_missing in [
-                       'y', 'yes', 'true', 't', 'True']):
+    if not (args.tabpfn_missing in [
+            'y', 'yes', 'true', 't', 'True']):
         model_name_map["tabpfn"] = 'TabPFN'
 
     dr_name_map = {
@@ -264,7 +265,8 @@ def main(args):
     cd_plot_for_nemenyi(copy.deepcopy(final_results), dr_name_map,
                         feature_type, feature_name_map, output_dir=out_dir)
     for model in model_name_map.keys():
-        cd_plot_for_nemenyi(final_results=copy.deepcopy(final_results.loc[final_results['model'] == model, :]), feature_type=feature_type, feature_name_map=feature_name_map, dr_name_map=dr_name_map, output_dir=out_dir, model = model)
+        cd_plot_for_nemenyi(final_results=copy.deepcopy(final_results.loc[final_results['model'] == model, :]),
+                            feature_type=feature_type, feature_name_map=feature_name_map, dr_name_map=dr_name_map, output_dir=out_dir, model=model)
 
 
 if __name__ == "__main__":
