@@ -91,7 +91,7 @@ def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir, model=None)
     )
 
     plt.title(
-        f"DR Method comparison across assays, models, and compound representations")
+        f"DR Method comparison across assays,\n models, and compound representations")
     plt.tight_layout()
     if model is None:
         plt.savefig(f'{output_dir}/nemenyi_pval_heatmap_comparing_dr_methods.png',
@@ -117,7 +117,7 @@ def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir, model=None)
         color_palette=color_palette
     )
     plt.title(
-        f"Critical difference\nDR method comparison across assays, models, and compound representations")
+        f"Critical difference\nDR method comparison across assays,\n models, and compound representations")
     plt.tight_layout()
     if model is None:
         plt.savefig(f'{output_dir}/critical_difference_plot_nemenyi_comparing_dr_methods.png',
@@ -200,7 +200,7 @@ def main(args):
                         try:
                             new_df = pd.read_csv(
                                 f'{directory}/{content}/fold{fold}/final_models_{feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
-
+                            new_df.dropna(inplace=True)
                             new_df['feature_type'] = [
                                 f'{feature_type}' for _ in range(len(new_df.index))]
                             new_df['dr_method'] = [
@@ -211,10 +211,10 @@ def main(args):
                         if (args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']) and ('tabpfn' in new_df['model'].values):
                             # tabpfn is run for this setting, but we don't want to evaluate it
                             new_df = new_df.loc[new_df['model'] != 'tabpfn', :]
-                        if len(new_df) < num_models:
-                            assay_done = False
-                            break
-
+                        if (not args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']) and ((feature_type == 'maccs') or (feature_type == 'physchem')) and (dr_method == 'none'):
+                            # tabpfn is run for these settings but not for embeddings and Morgan
+                            # therefore we also remove it from physchem and MACCS
+                            new_df= new_df.loc[new_df['model'] != 'tabpfn', :]
                         if results_df is None:
                             results_df = new_df
                         else:

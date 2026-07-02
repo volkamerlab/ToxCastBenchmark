@@ -212,9 +212,7 @@ def main(args):
                         # tabpfn is run for this setting, but we don't want to evaluate it
                         new_df = new_df.loc[new_df['model'] != 'tabpfn', :]
 
-                    if len(new_df) < num_models:
-                        assay_done = False
-                        break
+                    
                     if results_df is None:
                         results_df = new_df
                     else:

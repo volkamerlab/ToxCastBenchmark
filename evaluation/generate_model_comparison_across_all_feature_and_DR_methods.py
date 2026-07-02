@@ -90,7 +90,7 @@ def cd_plot_for_nemenyi(final_results, model_name_map, output_dir):
         annot=annot,
     )
 
-    plt.title(f"Model comparison across all feature types and DR methods")
+    plt.title(f"Model comparison across all feature types and DR methods", fontsize = 25)
     plt.tight_layout()
     plt.savefig(f'{output_dir}/nemenyi_pval_heatmap_models_across_everything.png',
                 dpi=300, transparent=False)
@@ -113,7 +113,7 @@ def cd_plot_for_nemenyi(final_results, model_name_map, output_dir):
         color_palette=color_palette
     )
     plt.title(
-        f"Critical difference\nModel comparison across all feature types and DR methods")
+        f"Critical difference\nModel comparison across \nall feature types and DR methods", fontsize= 25)
     plt.tight_layout()
     plt.savefig(f'{output_dir}/critical_difference_plot_nemenyi_comparing_models.png',
                 dpi=300, transparent=False)

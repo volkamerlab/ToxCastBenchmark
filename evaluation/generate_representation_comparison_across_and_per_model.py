@@ -90,7 +90,7 @@ def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir, model=None)
     )
 
     plt.title(
-        f"Compound representation comparison across assays, models, and DR methods")
+        f"Compound representation comparison \nacross assays, models, and DR methods")
     plt.tight_layout()
     if model is None:
         plt.savefig(f'{output_dir}/nemenyi_pval_heatmap_comparing_feature_types.png',
@@ -182,7 +182,7 @@ def main(args):
     num_models = 5 if (not args.tabpfn_missing in [
                        'y', 'yes', 'true', 't', 'True']) else 4
     for feature_type in ['physchem', 'morgan', 'maccs', 'embeddings']:
-        for dr_method in ['MI', 'mrmr', 'pca', 'variance']:
+        for dr_method in ['MI', 'mrmr', 'pca', 'variance', 'none']:
             for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
                 directory = f'{args.directory}/{subfolder}/'
 
@@ -208,6 +208,10 @@ def main(args):
                             break
                         if (args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']) and ('tabpfn' in new_df['model'].values):
                             # tabpfn is run for this setting, but we don't want to evaluate it
+                            new_df = new_df.loc[new_df['model'] != 'tabpfn', :]
+                        if (dr_method == 'none') and (not args.tabpfn_missing in ['y', 'yes', 'true', 't', 'True']) and  ('tabpfn' in new_df['model'].values):
+                            # dr method is none and technically we allow tabpfn, but for this setting, we don't have results for Morgan and embeddings
+                            # therefore we generally exclude TabPFN to be consistent across all representations
                             new_df = new_df.loc[new_df['model'] != 'tabpfn', :]
                         if len(new_df) < num_models:
                             assay_done = False

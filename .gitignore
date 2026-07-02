@@ -5,3 +5,6 @@ models/__pychache__/*
 temp/*
 run_pipeline/catboost_info/*
 **/*config.json
+Bioinfo2_data/*
+already_done*
+test.txt

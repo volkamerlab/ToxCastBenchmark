@@ -359,7 +359,7 @@ def main(args):
                 try:
                     new_df = pd.read_csv(
                         f'{directory}/{content}/fold{fold}/final_models_{args.feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
-
+                    new_df.dropna(inplace=True)
                 except:
                     assay_done = False
                     break
@@ -377,6 +377,7 @@ def main(args):
                     results_df = pd.concat([results_df, new_df], axis=0)
 
             if not assay_done:
+                print(f'not done: {content}')
                 continue
             else:
                 print(content)
