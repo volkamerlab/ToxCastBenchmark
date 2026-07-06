@@ -21,7 +21,7 @@ def get_best_per_assay(df_avg):
     best = df_avg.loc[
         df_avg.groupby("assay")["mcc_avg"].idxmax()
     ].copy()
-    
+    best.to_csv('assays_with_best_performance.csv', sep = '\t', index = False)
     return best
 
 
