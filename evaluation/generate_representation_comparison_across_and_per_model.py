@@ -14,8 +14,8 @@ custom_palette = {
     "maccs": "#004877",
     "morgan": "#000000",
 }
-
-
+title_font_size = 16
+label_font_size = 14
 # Fisher Z-transformation
 def fisher_z(r):
     return np.arctanh(np.clip(r, -0.999999, 0.999999))  # avoid ±1
@@ -90,7 +90,8 @@ def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir, model=None)
     )
 
     plt.title(
-        f"Compound representation comparison \nacross assays, models, and DR methods")
+        f"Compound representation comparison \nacross assays, models,\n and DR methods", fontsize= title_font_size
+)
     plt.tight_layout()
     if model is None:
         plt.savefig(f'{output_dir}/nemenyi_pval_heatmap_comparing_feature_types.png',
@@ -113,10 +114,11 @@ def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir, model=None)
         alpha=0.05,
         label_fmt_left="{label}\navg. rank: {rank:.2f}",
         label_fmt_right="{label}\navg. rank: {rank:.2f}",
-        color_palette=color_palette
+        color_palette=color_palette,
+        label_props={"fontsize": label_font_size}
     )
     plt.title(
-        f"Critical difference\nrepresentation comparison across assays, models, and DR methods")
+        f"Critical difference\nrepresentation comparison across assays, \nmodels, and DR methods", fontsize = title_font_size)
     plt.tight_layout()
     if model is None:
         plt.savefig(f'{output_dir}/critical_difference_plot_nemenyi_comparing_representations.png',

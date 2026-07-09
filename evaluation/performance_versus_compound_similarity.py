@@ -9,9 +9,9 @@ import warnings
 warnings.filterwarnings(action='ignore')
 
 def main():
-    #assays_with_best_performances = pd.read_csv('assays_with_best_performance.csv', sep = '\t')
-    assays_with_best_performances = pd.read_csv('assays_average_silhouette_score.csv', sep = '\t')
-    '''morgan_fingerprints = pd.read_csv('../model_inputs/morgan.csv', sep = '\t', index_col = 0)
+    assays_with_best_performances = pd.read_csv('assays_with_best_performance.csv', sep = '\t')
+    #assays_with_best_performances = pd.read_csv('assays_average_silhouette_score.csv', sep = '\t')
+    morgan_fingerprints = pd.read_csv('../model_inputs/morgan.csv', sep = '\t', index_col = 0)
     assays_with_best_performances['average silhouette score'] = [None for _ in range(len(assays_with_best_performances))]
     assays_with_best_performances['average train-test distance'] = [None for _ in range(len(assays_with_best_performances))]
     for assay_name in assays_with_best_performances["assay"].unique():
@@ -27,7 +27,7 @@ def main():
                 for fold in range(5):
                     with open(f'../model_inputs/{subfolder}/{assay_name}/fold{fold}/train.txt', 'r') as train_file:
                         train_compounds = train_file.read().splitlines()
-                    with open(f'../model_inputs/{subfolder}/{assay_name}/fold{fold}/train.txt', 'r') as test_file:
+                    with open(f'../model_inputs/{subfolder}/{assay_name}/fold{fold}/test.txt', 'r') as test_file:
                         test_compounds = test_file.read().splitlines()
                     X = morgan_fingerprints.loc[np.concatenate([train_compounds, test_compounds]), :]
                     labels = ['train' for _ in range(len(train_compounds))]
@@ -43,7 +43,7 @@ def main():
                 assays_with_best_performances.loc[assays_with_best_performances['assay'] == assay_name, 'average silhouette score'] = average_silhouette_score
                 assays_with_best_performances.loc[assays_with_best_performances['assay'] == assay_name, 'average train-test distance'] = average_distance
     assays_with_best_performances.to_csv('assays_average_silhouette_score.csv', sep = '\t', index = False)
- '''   
+   
     plt.figure(figsize=(7, 6))
     
     sns.scatterplot(
