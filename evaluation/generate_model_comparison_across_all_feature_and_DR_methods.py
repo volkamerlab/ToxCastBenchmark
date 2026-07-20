@@ -16,7 +16,8 @@ custom_palette = {
 
 }
 
-
+title_font_size = 16
+label_font_size = 14
 # Fisher Z-transformation
 def fisher_z(r):
     return np.arctanh(np.clip(r, -0.999999, 0.999999))  # avoid ±1
@@ -78,7 +79,7 @@ def cd_plot_for_nemenyi(final_results, model_name_map, output_dir):
             else:
                 annot[i, j] = f"{pvals.iat[i,j]:.1e}"
 
-    sns.heatmap(
+    ax = sns.heatmap(
         pvals,
         cmap=cmap,
         mask=mask,
@@ -89,8 +90,9 @@ def cd_plot_for_nemenyi(final_results, model_name_map, output_dir):
         cbar_kws={"label": "p-value"},
         annot=annot,
     )
-
-    plt.title(f"Model comparison across all feature types and DR methods", fontsize = 25)
+    ax.tick_params(axis='x', labelsize=label_font_size)
+    ax.tick_params(axis='y', labelsize=label_font_size)
+    plt.title(f"Model comparison across \nall feature types and DR methods", fontsize = title_font_size)
     plt.tight_layout()
     plt.savefig(f'{output_dir}/nemenyi_pval_heatmap_models_across_everything.png',
                 dpi=300, transparent=False)
@@ -110,10 +112,11 @@ def cd_plot_for_nemenyi(final_results, model_name_map, output_dir):
         alpha=0.05,
         label_fmt_left="{label}\navg. rank: {rank:.2f}",
         label_fmt_right="{label}\navg. rank: {rank:.2f}",
-        color_palette=color_palette
+        color_palette=color_palette,
+        label_props={"fontsize": label_font_size}
     )
     plt.title(
-        f"Critical difference\nModel comparison across \nall feature types and DR methods", fontsize= 25)
+        f"Critical difference\nModel comparison across \nall feature types and DR methods", fontsize= title_font_size)
     plt.tight_layout()
     plt.savefig(f'{output_dir}/critical_difference_plot_nemenyi_comparing_models.png',
                 dpi=300, transparent=False)

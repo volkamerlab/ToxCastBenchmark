@@ -12,7 +12,8 @@ import glob
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
+title_font_size = 16
+label_font_size = 14
 
 # -----------------------------
 # 2. Best combination per assay
@@ -137,13 +138,13 @@ def plot_performance_versus_assay_size(plot_df, outdir):
         0.05, 0.95,
         f"r = {corr:.2f}",
         transform=plt.gca().transAxes,
-        fontsize=11,
+        fontsize=label_font_size,
         verticalalignment="top"
     )
     
-    plt.xlabel("Number of tested samples", fontsize=13)
-    plt.ylabel("Best MCC (Fisher-averaged)", fontsize=13)
-    plt.title("Best performance vs assay size", fontsize=15)
+    plt.xlabel("Number of tested samples", fontsize=label_font_size)
+    plt.ylabel("Best MCC (Fisher-averaged)", fontsize=label_font_size)
+    plt.title("Best performance vs assay size", fontsize=title_font_size)
     
     plt.grid(alpha=0.3)
     plt.tight_layout()
@@ -180,13 +181,13 @@ def plot_performance_vs_imbalance(plot_df, outdir):
         0.05, 0.95,
         f"r = {corr:.2f}",
         transform=plt.gca().transAxes,
-        fontsize=11,
+        fontsize=label_font_size,
         verticalalignment="top"
     )
     
-    plt.xlabel("Class balance (#active / all samples)", fontsize=13)
-    plt.ylabel("Best MCC (Fisher-averaged)", fontsize=13)
-    plt.title("Best performance vs class imbalance", fontsize=15)
+    plt.xlabel("Class balance (#active / all samples)", fontsize=label_font_size)
+    plt.ylabel("Best MCC (Fisher-averaged)", fontsize=label_font_size)
+    plt.title("Best performance vs class imbalance", fontsize=title_font_size)
     
     plt.grid(alpha=0.3)
     plt.tight_layout()
@@ -194,15 +195,17 @@ def plot_performance_vs_imbalance(plot_df, outdir):
 
 
 
-def boxplot_best_performances(df_avg, outdir):
+def boxplot_best_performances(df_avg, outdir, metric = 'mcc_avg', ylab = "Best MCC per assay (Fisher-averaged)"):
+    print(df_avg)
     best_per_assay = (
     df_avg.loc[
-        df_avg.groupby("assay")["mcc_avg"].idxmax()
+        df_avg.groupby("assay")[metric].idxmax()
     ]
     )
-    best_values = best_per_assay["mcc_avg"]
-    print(best_per_assay.loc[:, ['mcc_avg', 'assay']])
-    #print(best_per_assay['mcc_avg'].max())
+    best_values = best_per_assay[metric]
+    print(best_per_assay.loc[:, [metric, 'assay']])
+    print(best_per_assay.loc[best_per_assay['mcc_avg'].isin(best_per_assay['mcc_avg'].nlargest(2)), 'assay'])
+    print(best_per_assay.loc[best_per_assay['mcc_avg'].isin(best_per_assay['mcc_avg'].nsmallest(2)), 'assay'])
     plt.figure(figsize=(6, 6))
 
     ax = sns.boxplot(
@@ -219,14 +222,14 @@ def boxplot_best_performances(df_avg, outdir):
         alpha=0.7
     )
 
-    plt.ylabel("Best MCC per assay (Fisher-averaged)", fontsize=13)
+    plt.ylabel(ylab, fontsize=13)
     plt.title("Best achievable performance across assays", fontsize=15)
 
     plt.xticks([])  # no x-axis needed
 
     plt.tight_layout()
-    plt.savefig(f'{outdir}/boxplot_with_best_performances.png', dpi = 600)
-    best_per_assay = best_per_assay.sort_values("mcc_avg")
+    plt.savefig(f'{outdir}/boxplot_with_best_performances_{metric}.png', dpi = 600)
+    best_per_assay = best_per_assay.sort_values(metric)
 
 
 def count_top_k(k, df_avg):
@@ -241,7 +244,7 @@ def count_top_k(k, df_avg):
         .rename(f"top{k}")
     )
 
-def plot_heatmap(df, outpath):
+def plot_heatmap(df, outpath, metric = 'mcc'):
     
     
     models = df["model"].unique()
@@ -284,18 +287,29 @@ def plot_heatmap(df, outpath):
 
     # ---- 2. Average over folds ----
     group_cols = ["model", "dr_method", "representation", "assay"]
-    df_avg = (
-        df.groupby(group_cols)["z"]
-        .mean()
-        .reset_index()
-    )
+    if metric == 'auroc':
+        df_avg = (
+            df.groupby(group_cols)["auroc"]
+            .mean()
+            .reset_index()
+        )
+        # ---- 4. Rank per assay ----
+        df_avg["rank"] = df_avg.groupby("assay")["auroc"] \
+                            .rank(method="min", ascending=False)
+    elif metric == 'mcc':
+        df_avg = (
+            df.groupby(group_cols)["z"]
+            .mean()
+            .reset_index()
+        )
+        
+        # ---- 3. Inverse transform ----
+        df_avg["mcc_avg"] = np.tanh(df_avg["z"])
 
-    # ---- 3. Inverse transform ----
-    df_avg["mcc_avg"] = np.tanh(df_avg["z"])
 
-    # ---- 4. Rank per assay ----
-    df_avg["rank"] = df_avg.groupby("assay")["mcc_avg"] \
-                        .rank(method="min", ascending=False)
+        # ---- 4. Rank per assay ----
+        df_avg["rank"] = df_avg.groupby("assay")["mcc_avg"] \
+                            .rank(method="min", ascending=False)
 
     # ---- 5. Count top-k appearances ----
 
@@ -310,7 +324,7 @@ def plot_heatmap(df, outpath):
 
     # sort by top1
     result = result.sort_values(["top1", "top3", "top5"], ascending=False)
-    result = result[result["top1"] >= 2]
+    result = result[(result["top1"] >= 2)]
     
     
     mapped_index = []
@@ -346,8 +360,8 @@ def plot_heatmap(df, outpath):
     ax.xaxis.tick_top()
     ax.xaxis.set_label_position('top')
 
-    ax.tick_params(axis='x', rotation=0, labelsize=12)
-    ax.tick_params(axis='y', rotation=0, labelsize=10)
+    ax.tick_params(axis='x', rotation=0, labelsize=14)
+    ax.tick_params(axis='y', rotation=0, labelsize=14)
 
     # annotations inside cells
     for text in ax.texts:
@@ -356,39 +370,41 @@ def plot_heatmap(df, outpath):
     # colorbar label + ticks
     cbar = ax.collections[0].colorbar
     cbar.ax.tick_params(labelsize=11)
-    cbar.set_label("# assays", fontsize=12)
+    cbar.set_label("# assays", fontsize=14)
 
     # title and axis labels
     plt.title("Top-k assay wins per representation-DR method-model combination", fontsize=16, pad=30)
     plt.xlabel("")
-    plt.ylabel("combination", fontsize=13)
+    plt.ylabel("combination", fontsize=14)
 
     # improve multiline spacing
     for label in ax.get_yticklabels():
         label.set_linespacing(1.4)
     plt.tight_layout()
-    plt.savefig(f'{outpath}/combination_heatmap.svg', dpi = 600)
+    plt.savefig(f'{outpath}/combination_heatmap_{metric}.svg', dpi = 600)
     
-    boxplot_best_performances(df_avg, outpath)
-    
+    if metric == 'auroc':
+        boxplot_best_performances(df_avg, outpath, metric = 'auroc', ylab = 'Best AUROC per assay')
+    elif metric == 'mcc':
+        boxplot_best_performances(df_avg, outpath)
 
-    best_per_assay = get_best_per_assay(df_avg)
+        best_per_assay = get_best_per_assay(df_avg)
 
-    imbalance_dict = compute_imbalance(
-        df,
-        base_path="../ToxCastDownloads/binary_responses_and_datasail_input_files"
-    )
+        imbalance_dict = compute_imbalance(
+            df,
+            base_path="../ToxCastDownloads/binary_responses_and_datasail_input_files"
+        )
 
-    plot_df = create_plot_df(best_per_assay, imbalance_dict)
+        plot_df = create_plot_df(best_per_assay, imbalance_dict)
 
-    plot_performance_vs_imbalance(plot_df, outpath)
-    
-    
-    size_dict = compute_assay_size(df)
-    
-    plot_df = create_plot_df(best_per_assay, size_dict)
+        plot_performance_vs_imbalance(plot_df, outpath)
+        
+        
+        size_dict = compute_assay_size(df)
+        
+        plot_df = create_plot_df(best_per_assay, size_dict)
 
-    plot_performance_versus_assay_size(plot_df, outpath)
+        plot_performance_versus_assay_size(plot_df, outpath)
 
 
 def parse_args():
@@ -398,6 +414,8 @@ def parse_args():
                         help="input_directory", default='../model_outputs/')
     parser.add_argument("--output_dir", '-o',
                     help="Output_directory", default='../plotting_results/')
+    parser.add_argument("--metric", '-m',
+                    help="Performance metric", default='mcc')
     return parser.parse_args()
 
 def main(args):
@@ -448,7 +466,7 @@ def main(args):
                             final_results.reset_index(inplace=True, drop=True)
     print(final_results)
 
-    plot_heatmap(final_results, out_dir)
+    plot_heatmap(final_results, out_dir, args.metric)
 
 
 if __name__ == "__main__":

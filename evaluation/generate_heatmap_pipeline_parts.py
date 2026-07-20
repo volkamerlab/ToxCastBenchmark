@@ -1,0 +1,459 @@
+import os
+import pandas as pd
+import argparse
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+import pandas as pd
+import numpy as np
+import glob
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+title_font_size = 16
+label_font_size = 14
+
+# -----------------------------
+# 2. Best combination per assay
+# -----------------------------
+
+
+def get_best_per_assay(df_avg):
+    best = df_avg.loc[
+        df_avg.groupby("assay")["mcc_avg"].idxmax()
+    ].copy()
+    best.to_csv('assays_with_best_performance.csv', sep='\t', index=False)
+    return best
+
+
+def compute_assay_size(df):
+    size_dict = {}
+
+    for assay_name in df["assay"].unique():
+
+        subfolders = ['steroidal', 'androgens',
+                      'estrogens', 'glucocorticoids', 'progestagens']
+
+        for subfolder in subfolders:
+            input_directory = f'../model_inputs/{subfolder}/'
+            content = os.listdir(input_directory)
+            if assay_name in content:
+
+                pattern = f'{assay_name}-*_binary_response.csv'
+                matching_files = glob.glob(
+                    f'../ToxCastDownloads/binary_responses_and_datasail_input_files/{subfolder}/{pattern}')
+
+        if len(matching_files) == 0:
+            print(f"[Warning] No file found for {assay_name}")
+            continue
+
+        file_path = matching_files[0]
+        data = pd.read_csv(file_path, sep="\t")
+
+        y = data["response"]
+        size_dict[assay_name] = len(y)
+
+    return size_dict
+
+# -----------------------------
+# 3. Compute imbalance per assay
+# -----------------------------
+
+
+def compute_imbalance(df, base_path):
+    imbalance_dict = {}
+
+    for assay_name in df["assay"].unique():
+
+        subfolders = ['steroidal', 'androgens',
+                      'estrogens', 'glucocorticoids', 'progestagens']
+
+        for subfolder in subfolders:
+            input_directory = f'../model_inputs/{subfolder}/'
+            content = os.listdir(input_directory)
+            if assay_name in content:
+
+                pattern = f'{assay_name}-*_binary_response.csv'
+                matching_files = glob.glob(
+                    f'../ToxCastDownloads/binary_responses_and_datasail_input_files/{subfolder}/{pattern}')
+
+        if len(matching_files) == 0:
+            print(f"[Warning] No file found for {assay_name}")
+            continue
+
+        file_path = matching_files[0]
+        data = pd.read_csv(file_path, sep="\t")
+
+        y = data["response"]
+
+        n_pos = (y == 1).sum()
+        n_neg = (y == 0).sum()
+
+        if n_pos == 0 or n_neg == 0:
+            imbalance = 0
+        else:
+            imbalance = n_pos / (n_pos + n_neg)
+
+        imbalance_dict[assay_name] = imbalance
+
+    return imbalance_dict
+
+
+# -----------------------------
+# 4. Merge performance + imbalance
+# -----------------------------
+def create_plot_df(best_per_assay, imbalance_dict):
+    plot_df = best_per_assay.copy()
+    plot_df["imbalance"] = plot_df["assay"].map(imbalance_dict)
+
+    # drop missing if any files weren't found
+    plot_df = plot_df.dropna(subset=["imbalance"])
+
+    return plot_df
+
+
+def plot_performance_versus_assay_size(plot_df, outdir):
+    plt.figure(figsize=(7, 6))
+
+    sns.scatterplot(
+        data=plot_df,
+        x="imbalance",
+        y="mcc_avg",
+        s=70,
+        color="red",
+        edgecolor="black"
+    )
+
+    # regression line
+    sns.regplot(
+        data=plot_df,
+        x="imbalance",
+        ci=None,
+        y="mcc_avg",
+        scatter=False,
+        color="blue",
+        line_kws={"linewidth": 2}
+    )
+
+    # correlation
+    corr = plot_df["imbalance"].corr(plot_df["mcc_avg"])
+    plt.text(
+        0.05, 0.95,
+        f"r = {corr:.2f}",
+        transform=plt.gca().transAxes,
+        fontsize=label_font_size,
+        verticalalignment="top"
+    )
+
+    plt.xlabel("Number of tested samples", fontsize=label_font_size)
+    plt.ylabel("Best MCC (Fisher-averaged)", fontsize=label_font_size)
+    plt.title("Best performance vs assay size", fontsize=title_font_size)
+
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(f'{outdir}/performance_vs_assay_size.png')
+# -----------------------------
+# 5. Plot
+# -----------------------------
+
+
+def plot_performance_vs_imbalance(plot_df, outdir):
+    plt.figure(figsize=(7, 6))
+
+    sns.scatterplot(
+        data=plot_df,
+        x="imbalance",
+        y="mcc_avg",
+        s=70,
+        color="red",
+        edgecolor="black"
+    )
+
+    # regression line
+    sns.regplot(
+        data=plot_df,
+        x="imbalance",
+        ci=None,
+        y="mcc_avg",
+        scatter=False,
+        color="blue",
+        line_kws={"linewidth": 2}
+    )
+
+    # correlation
+    corr = plot_df["imbalance"].corr(plot_df["mcc_avg"])
+    plt.text(
+        0.05, 0.95,
+        f"r = {corr:.2f}",
+        transform=plt.gca().transAxes,
+        fontsize=label_font_size,
+        verticalalignment="top"
+    )
+
+    plt.xlabel("Class balance (#active / all samples)",
+               fontsize=label_font_size)
+    plt.ylabel("Best MCC (Fisher-averaged)", fontsize=label_font_size)
+    plt.title("Best performance vs class imbalance", fontsize=title_font_size)
+
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(f'{outdir}/performance_vs_imbalance.png')
+
+
+def boxplot_best_performances(df_avg, outdir, metric='mcc_avg', ylab="Best MCC per assay (Fisher-averaged)"):
+    print(df_avg)
+    best_per_assay = (
+        df_avg.loc[
+            df_avg.groupby("assay")[metric].idxmax()
+        ]
+    )
+    best_values = best_per_assay[metric]
+    print(best_per_assay.loc[:, [metric, 'assay']])
+    print(best_per_assay.loc[best_per_assay['mcc_avg'].isin(
+        best_per_assay['mcc_avg'].nlargest(2)), 'assay'])
+    print(best_per_assay.loc[best_per_assay['mcc_avg'].isin(
+        best_per_assay['mcc_avg'].nsmallest(2)), 'assay'])
+    plt.figure(figsize=(6, 6))
+
+    ax = sns.boxplot(
+        y=best_values,
+        color="lightgray",
+        width=0.4
+    )
+
+    # overlay points (important!)
+    sns.stripplot(
+        y=best_values,
+        color="red",
+        size=6,
+        alpha=0.7
+    )
+
+    plt.ylabel(ylab, fontsize=13)
+    plt.title("Best achievable performance across assays", fontsize=15)
+
+    plt.xticks([])  # no x-axis needed
+
+    plt.tight_layout()
+    plt.savefig(
+        f'{outdir}/boxplot_with_best_performances_{metric}.png', dpi=600)
+    best_per_assay = best_per_assay.sort_values(metric)
+
+
+def count_top_k(k, df_avg, group_cols=["model", "dr_method", "representation"]):
+
+    return (
+        df_avg[df_avg["rank"] <= k]
+        .groupby(group_cols)
+        .size()
+        .rename(f"top{k}")
+    )
+
+
+def plot_heatmap(df, outpath, metric='mcc'):
+
+    models = df["model"].unique()
+    dr_methods = df["dr_method"].unique()
+    representations = df["representation"].unique()
+
+    full_combinations = pd.MultiIndex.from_product(
+        [models, dr_methods, representations],
+        names=["model", "dr_method", "representation"]
+    )
+
+    feature_name_map = {
+        'physchem': 'physicochemical properties',
+        'morgan': 'Morgan fingerprints',
+        'maccs': 'MACCS fingerprints',
+        'embeddings': 'Embeddings'
+    }
+
+    model_name_map = {
+        "rf": "RF",
+        "mlp": "MLP",
+        "svm": "SVM",
+        "cat_boost": "CatBoost",
+        'tabpfn': 'TabPFN'
+
+    }
+
+    dr_name_map = {
+        "pca": "PCA",
+        "mrmr": "MRMR",
+        "variance": "Highest variance",
+        "MI": "Mutual Information",
+        "none": "No DR"
+    }
+    # ---- 1. Fisher transform ----
+    # clip to avoid inf
+    eps = 1e-6
+    df["mcc_clipped"] = df["mcc"].clip(-1 + eps, 1 - eps)
+    df["z"] = np.arctanh(df["mcc_clipped"])
+
+    # ---- 2. Average over folds ----
+    group_cols = ["model", "dr_method", "representation", "assay"]
+    if metric == 'auroc':
+        df_avg = (
+            df.groupby(group_cols)["auroc"]
+            .mean()
+            .reset_index()
+        )
+        # ---- 4. Rank per assay ----
+        df_avg["rank"] = df_avg.groupby("assay")["auroc"] \
+            .rank(method="min", ascending=False)
+    elif metric == 'mcc':
+        df_avg = (
+            df.groupby(group_cols)["z"]
+            .mean()
+            .reset_index()
+        )
+
+        # ---- 3. Inverse transform ----
+        df_avg["mcc_avg"] = np.tanh(df_avg["z"])
+
+        # ---- 4. Rank per assay ----
+        df_avg["rank"] = df_avg.groupby("assay")["mcc_avg"] \
+            .rank(method="min", ascending=False)
+
+    # ---- 5. Count top-k appearances ----
+    create_heatmap(df_avg, 'representation', feature_name_map, outpath)
+    create_heatmap(df_avg, 'model', model_name_map, outpath)
+    create_heatmap(df_avg, 'dr_method', dr_name_map, outpath)
+
+
+def create_heatmap(df_avg, pipeline_part, name_map, outpath, metric='mcc_avg'):
+
+    top1 = count_top_k(1, df_avg, group_cols=[pipeline_part])
+    top3 = count_top_k(3, df_avg, group_cols=[pipeline_part])
+    top5 = count_top_k(5, df_avg, group_cols=[pipeline_part])
+    top10 = count_top_k(10, df_avg, group_cols=[pipeline_part])
+
+    # ---- 6. Combine ----
+    result = pd.concat([top1, top3, top5], axis=1).fillna(0)
+
+    # sort by top1
+    result = result.sort_values(["top1", "top3", "top5"], ascending=False)
+
+    mapped_index = []
+    for r in result.index:
+        mapped_index.append((
+            name_map.get(r, r)
+        ))
+
+    result.index = mapped_index
+
+    result.index = [
+        f"{r}"
+        for
+        r in result.index
+    ]
+
+    # ---- 7. Heatmap ----
+    plt.figure(figsize=(14, max(8, len(result) * 0.7)))
+
+    ax = sns.heatmap(
+        result,
+        annot=True,
+        fmt=".0f",
+        cmap="coolwarm",   # blue -> white -> red (high = red)
+        cbar_kws={"label": "# assays"}
+    )
+
+    ax.xaxis.tick_top()
+    ax.xaxis.set_label_position('top')
+
+    ax.tick_params(axis='x', rotation=0, labelsize=14)
+    ax.tick_params(axis='y', rotation=0, labelsize=14)
+
+    # annotations inside cells
+    for text in ax.texts:
+        text.set_size(11)
+
+    # colorbar label + ticks
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=11)
+    cbar.set_label("# assays", fontsize=14)
+
+    # title and axis labels
+    plt.title(f"Top-k assay wins per {pipeline_part}", fontsize=16, pad=30)
+    plt.xlabel("")
+    plt.ylabel(f"{pipeline_part}", fontsize=14)
+
+    # improve multiline spacing
+    for label in ax.get_yticklabels():
+        label.set_linespacing(1.4)
+    plt.tight_layout()
+    plt.savefig(
+        f'{outpath}/combination_heatmap_{metric}_{pipeline_part}.pdf', dpi=600)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Evaluation of 5 fold CV results comparing the combinations")
+    parser.add_argument("-d", '--directory',
+                        help="input_directory", default='../model_outputs/')
+    parser.add_argument("--output_dir", '-o',
+                        help="Output_directory", default='../plotting_results/')
+    parser.add_argument("--metric", '-m',
+                        help="Performance metric", default='mcc')
+    return parser.parse_args()
+
+
+def main(args):
+
+    final_results = None
+    out_dir = args.output_dir
+    for feature_type in ['maccs', 'morgan', 'embeddings', 'physchem']:
+        for dr_method in ['MI', 'mrmr', 'pca', 'variance', 'none']:
+            for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
+                directory = f'{args.directory}/{subfolder}/'
+
+                for content in os.listdir(directory):
+
+                    if '.csv' in content:
+                        continue
+                    if '.png' in content:
+                        continue
+
+                    results_df = None
+                    assay_done = True
+                    for fold in range(5):
+
+                        new_df = pd.read_csv(
+                            f'{directory}/{content}/fold{fold}/final_models_{feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
+
+                        new_df['dr_method'] = [
+                            f'{dr_method}' for _ in range(len(new_df.index))]
+                        new_df['representation'] = [
+                            f'{feature_type}' for _ in range(len(new_df.index))]
+                        if results_df is None:
+                            results_df = new_df
+                        else:
+
+                            results_df = pd.concat(
+                                [results_df, new_df], axis=0)
+
+                    if not assay_done:
+                        continue
+                    else:
+
+                        results_df.reset_index(inplace=True, drop=True)
+
+                        results_df['assay'] = [
+                            content for _ in range(len(results_df))]
+                        if final_results is None:
+                            final_results = results_df
+                        else:
+                            final_results = pd.concat(
+                                [final_results, results_df.copy(deep=True)])
+                            final_results.reset_index(inplace=True, drop=True)
+    print(final_results)
+
+    plot_heatmap(final_results, out_dir, args.metric)
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args)

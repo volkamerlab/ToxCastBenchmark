@@ -8,6 +8,10 @@ import seaborn as sns
 import warnings
 warnings.filterwarnings(action='ignore')
 
+title_font_size = 16
+label_font_size = 14
+
+
 def sim_to_nearest_neighbour(train_df, test_df):
     X_train = train_df.to_numpy(dtype=np.uint8)
     X_test = test_df.to_numpy(dtype=np.uint8)
@@ -89,13 +93,13 @@ def main():
         0.05, 0.95,
         f"r = {corr:.2f}",
         transform=plt.gca().transAxes,
-        fontsize=11,
+        fontsize=label_font_size,
         verticalalignment="top"
     )
     
-    plt.xlabel("Average Similarity to Closest Train Fold Compound", fontsize=13)
-    plt.ylabel("Best MCC (Fisher-averaged)", fontsize=13)
-    plt.title("Best performance vs average similarity", fontsize=15)
+    plt.xlabel("Average Similarity to Closest Train Fold Compound", fontsize=title_font_size)
+    plt.ylabel("Best MCC (Fisher-averaged)", fontsize=label_font_size)
+    plt.title("Best performance vs average similarity", fontsize=label_font_size)
     
     plt.grid(alpha=0.3)
     plt.tight_layout()

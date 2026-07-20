@@ -76,7 +76,7 @@ def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir, model=None)
                 annot[i, j] = ""
             else:
                 annot[i, j] = f"{pvals.iat[i,j]:.1e}"
-
+    fig, ax = plt.subplots(figsize=(6.4, 5.2))
     sns.heatmap(
         pvals,
         cmap=cmap,
@@ -88,7 +88,8 @@ def cd_plot_for_nemenyi(final_results, feature_name_map, output_dir, model=None)
         cbar_kws={"label": "p-value"},
         annot=annot,
     )
-
+    ax.tick_params(axis='x', labelsize=label_font_size)
+    ax.tick_params(axis='y', labelsize=label_font_size)
     plt.title(
         f"Compound representation comparison \nacross assays, models,\n and DR methods", fontsize= title_font_size
 )
@@ -242,9 +243,9 @@ def main(args):
                             final_results.reset_index(inplace=True, drop=True)
 
     feature_name_map = {
-        'physchem': 'physicochemical properties',
-        'morgan': 'Morgan fingerprints',
-        'maccs': 'MACCS fingerprints',
+        'physchem': 'physchem',
+        'morgan': 'Morgan',
+        'maccs': 'MACCS',
         'embeddings': 'Embeddings'
     }
 

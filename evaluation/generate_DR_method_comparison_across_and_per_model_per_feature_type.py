@@ -16,6 +16,8 @@ custom_palette = {
     "MI": "#000000",
     "none": "#6e6e6e"
 }
+title_font_size = 16
+label_font_size = 14
 
 
 # Fisher Z-transformation
@@ -78,7 +80,7 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
             else:
                 annot[i, j] = f"{pvals.iat[i,j]:.1e}"
 
-    sns.heatmap(
+    ax = sns.heatmap(
         pvals,
         cmap=cmap,
         mask=mask,
@@ -88,17 +90,20 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
         vmax=1,
         cbar_kws={"label": "p-value"},
         annot=annot,
+
     )
+    ax.tick_params(axis='x', labelsize=label_font_size)
+    ax.tick_params(axis='y', labelsize=label_font_size)
 
     plt.title(
-        f"DR method comparison across assays and models on \n{feature_name_map[feature_type]} ")
+        f"DR method comparison across assays and models on \n{feature_name_map[feature_type]} ", fontsize=title_font_size)
     plt.tight_layout()
     if model is None:
         plt.savefig(f'{output_dir}/{feature_type}_nemenyi_pval_heatmap_comparing_dr_methods.png',
-                    dpi=300, transparent=False)
+                    dpi=600, transparent=False)
     else:
         plt.savefig(f'{output_dir}/{feature_type}_nemenyi_pval_heatmap_comparing_dr_methods_{model}.png',
-                    dpi=300, transparent=False)
+                    dpi=600, transparent=False)
     pvals.index = avg_ranks.index
     pvals.columns = avg_ranks.index
 
@@ -114,17 +119,18 @@ def cd_plot_for_nemenyi(final_results, dr_name_map, feature_type, feature_name_m
         alpha=0.05,
         label_fmt_left="{label}\navg. rank: {rank:.2f}",
         label_fmt_right="{label}\navg. rank: {rank:.2f}",
-        color_palette=color_palette
+        color_palette=color_palette,
+        label_props={"fontsize": label_font_size}
     )
     plt.title(
-        f"Critical difference\nDR method comparison across assays on \n{feature_name_map[feature_type]}")
+        f"Critical difference\nDR method comparison across assays on \n{feature_name_map[feature_type]}", fontsize=title_font_size)
     plt.tight_layout()
     if model is None:
         plt.savefig(f'{output_dir}/{feature_type}_critical_difference_plot_nemenyi_comparing_DR_methods.png',
-                    dpi=300, transparent=False)
+                    dpi=600, transparent=False)
     else:
         plt.savefig(f'{output_dir}/{feature_type}_critical_difference_plot_nemenyi_comparing_DR_methods_{model}.png',
-                    dpi=300, transparent=False)
+                    dpi=600, transparent=False)
 
 
 def pairwise_friedman_nemenyi(data):
@@ -212,7 +218,6 @@ def main(args):
                         # tabpfn is run for this setting, but we don't want to evaluate it
                         new_df = new_df.loc[new_df['model'] != 'tabpfn', :]
 
-                    
                     if results_df is None:
                         results_df = new_df
                     else:
@@ -255,8 +260,8 @@ def main(args):
     dr_name_map = {
         "pca": "PCA",
         "mrmr": "MRMR",
-        "variance": "Highest variance",
-        "MI": "Mutual Information",
+        "variance": "Variance",
+        "MI": "MI",
         "none": "No DR"
     }
 
