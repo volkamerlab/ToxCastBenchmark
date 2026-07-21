@@ -323,7 +323,81 @@ def plot_heatmap(df, outpath, metric='mcc'):
     create_heatmap(df_avg, 'dr_method', dr_name_map, outpath)
 
 
-def create_heatmap(df_avg, pipeline_part, name_map, outpath, metric='mcc_avg'):
+def create_heatmap(
+    df_avg,
+    pipeline_part,
+    name_map,
+    outpath,
+    metric="mcc_avg",
+    column_width=3.4,      # inches, single-column width
+    cell_height=0.18,      # controls box height
+):
+    top1 = count_top_k(1, df_avg, group_cols=[pipeline_part])
+    top3 = count_top_k(3, df_avg, group_cols=[pipeline_part])
+    top5 = count_top_k(5, df_avg, group_cols=[pipeline_part])
+
+    result = pd.concat([top1, top3, top5], axis=1).fillna(0)
+    result = result.sort_values(["top1", "top3", "top5"], ascending=False)
+
+    result.index = [name_map.get(r, r) for r in result.index]
+
+    n_rows = len(result)
+    n_cols = len(result.columns)
+
+    # fixed publication width, shrink cells accordingly
+    fig_width = column_width
+    fig_height = max(2.0, n_rows * cell_height)
+
+    plt.figure(figsize=(fig_width, fig_height))
+
+    ax = sns.heatmap(
+        result,
+        annot=True,
+        fmt=".0f",
+        cmap="coolwarm",
+        cbar_kws={
+            "label": "# assays",
+            "shrink": 0.8,
+            "pad": 0.02,
+        },
+    )
+
+    ax.xaxis.tick_top()
+    ax.xaxis.set_label_position("top")
+
+    # keep your current font sizes
+    ax.tick_params(axis="x", rotation=0, labelsize=14)
+    ax.tick_params(axis="y", rotation=0, labelsize=14)
+
+    for text in ax.texts:
+        text.set_size(11)
+
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=11)
+    cbar.set_label("# assays", fontsize=14)
+
+    plt.title(
+        f"Top-k assay wins per {pipeline_part}",
+        fontsize=16,
+        pad=20,
+    )
+
+    plt.xlabel("")
+    plt.ylabel(pipeline_part, fontsize=14)
+
+    for label in ax.get_yticklabels():
+        label.set_linespacing(1.4)
+
+    plt.tight_layout()
+
+    plt.savefig(
+        f"{outpath}/combination_heatmap_{metric}_{pipeline_part}.pdf",
+        bbox_inches="tight"
+    )
+    plt.close()
+
+
+def create_heatmap_old(df_avg, pipeline_part, name_map, outpath, metric='mcc_avg'):
 
     top1 = count_top_k(1, df_avg, group_cols=[pipeline_part])
     top3 = count_top_k(3, df_avg, group_cols=[pipeline_part])

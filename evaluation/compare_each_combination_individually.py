@@ -204,8 +204,8 @@ def boxplot_best_performances(df_avg, outdir, metric = 'mcc_avg', ylab = "Best M
     )
     best_values = best_per_assay[metric]
     print(best_per_assay.loc[:, [metric, 'assay']])
-    print(best_per_assay.loc[best_per_assay['mcc_avg'].isin(best_per_assay['mcc_avg'].nlargest(2)), 'assay'])
-    print(best_per_assay.loc[best_per_assay['mcc_avg'].isin(best_per_assay['mcc_avg'].nsmallest(2)), 'assay'])
+    print(best_per_assay.loc[best_per_assay['mcc_avg'].isin(best_per_assay['mcc_avg'].nlargest(2)), ['assay', 'mcc_avg']])
+    print(best_per_assay.loc[best_per_assay['mcc_avg'].isin(best_per_assay['mcc_avg'].nsmallest(2)), ['assay', 'mcc_avg']])
     plt.figure(figsize=(6, 6))
 
     ax = sns.boxplot(

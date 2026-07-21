@@ -1,0 +1,7 @@
+	mcc_avg
+5NN_active_frac_among_active_query	0.5769119137857621
+NN_label_concordance_actives	0.5529919774961076
+5NN_active_frac_among_inactive_query	0.22810796877947004
+mean_NN_tanimoto_sim	-0.1534283729549193
+NN_label_concordance_inactives	-0.24678575269932534
+NN_label_concordance_overall	-0.30105330880242265
