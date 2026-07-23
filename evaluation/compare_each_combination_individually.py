@@ -4,13 +4,7 @@ import argparse
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-
-
-import pandas as pd
-import numpy as np
 import glob
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 title_font_size = 16
 label_font_size = 14
