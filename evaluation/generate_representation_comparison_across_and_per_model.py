@@ -246,7 +246,7 @@ def main(args):
         'physchem': 'physchem',
         'morgan': 'Morgan',
         'maccs': 'MACCS',
-        'embeddings': 'Embeddings'
+        'embeddings': 'embed'
     }
 
     model_name_map = {

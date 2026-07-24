@@ -332,9 +332,9 @@ def create_heatmap(
     column_width=3.4,      # inches, single-column width
     cell_height=0.18,      # controls box height
 ):
-    top1 = count_top_k(1, df_avg, group_cols=[pipeline_part])
-    top3 = count_top_k(3, df_avg, group_cols=[pipeline_part])
-    top5 = count_top_k(5, df_avg, group_cols=[pipeline_part])
+    top1 = count_top_k(1, df_avg, group_cols=[pipeline_part])/52
+    top3 = count_top_k(3, df_avg, group_cols=[pipeline_part])/(3*52)
+    top5 = count_top_k(5, df_avg, group_cols=[pipeline_part])/(5*52)
 
     result = pd.concat([top1, top3, top5], axis=1).fillna(0)
     result = result.sort_values(["top1", "top3", "top5"], ascending=False)
@@ -353,7 +353,7 @@ def create_heatmap(
     ax = sns.heatmap(
         result,
         annot=True,
-        fmt=".0f",
+        fmt=".2f",
         cmap="coolwarm",
         cbar_kws={
             "label": "# assays",

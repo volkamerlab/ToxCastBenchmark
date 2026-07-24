@@ -10,14 +10,43 @@ import pandas as pd
 from rdkit import DataStructs
 import os
 import glob
+from sklearn.metrics import matthews_corrcoef
 K_NEIGHBORS = 5
 ROWS_PER_PAGE = 20
 filterwarnings("ignore")
 
 
+
 MAX_SUB_HEAVY_ATOMS = 8      # max heavy atoms in the swapped substituent
 MAX_SUB_CORE_RATIO = 0.5     # substituent must be <= this fraction of the core's size
 
+
+import numpy as np
+
+def fisher_mean_mcc(mcc_values):
+    """
+    Compute the Fisher z-transformed mean of MCC values.
+    
+    Parameters
+    ----------
+    mcc_values : array-like
+        List of MCC values in [-1, 1].
+
+    Returns
+    -------
+    float
+        Back-transformed mean MCC.
+    """
+    mcc_values = np.asarray(mcc_values, dtype=float)
+
+    # Avoid infinities for values exactly at ±1
+    eps = np.finfo(float).eps
+    mcc_values = np.clip(mcc_values, -1 + eps, 1 - eps)
+
+    z = np.arctanh(mcc_values)
+    z_mean = np.mean(z)
+
+    return np.tanh(z_mean)
 
 def _heavy_atoms(smi_with_dummy):
     m = Chem.MolFromSmiles(smi_with_dummy.replace('[*:1]', '[H]'))
@@ -115,6 +144,7 @@ def mmp_analysis(df):
 
 
 def plot_nearest_neighbours(df, i, topk, pdf_pages, labels):
+
     df.dropna(inplace=True)
     df["mol"] = df["smiles"].apply(Chem.MolFromSmiles)
 
@@ -153,22 +183,32 @@ def plot_nearest_neighbours(df, i, topk, pdf_pages, labels):
     return pdf_pages
 
 
-def nn_concordance(df, fps, k=K_NEIGHBORS, name=None):
+def nn_concordance(df, fps, k=K_NEIGHBORS, name=None, test_folds = None):
+    assay_compound_map = {
+        'NVS_NR_bER': ['DTXSID0020573', 'DTXSID0020814'],
+        'OT_AR_ARELUC_AG_1440': ['DTXSID1024704', 'DTXSID1029124'],
+        'TOX21_AR_LUC_MDAKB2_Antagonist_0.5nM_R1881': ['DTXSID0022220', 'DTXSID0025654'],
+        'TOX21_ERb_BLA_Agonist_ratio': ['DTXSID2022127', 'DTXSID7020685']
+    }
     labels = df['response'].values
     n = len(fps)
     nn_sim = np.zeros(n)
     nn_same_label = np.zeros(n, dtype=bool)
     knn_active_frac = np.zeros(n)
     all_rows = []
-    for i in range(n):
+    pred_nn = {}
+    for i, compound in enumerate(df['compound'].values):
         sims = np.array(DataStructs.BulkTanimotoSimilarity(fps[i], fps))
+        
         sims[i] = -1  # exclude self
         nn_idx = np.argmax(sims)
         nn_sim[i] = sims[nn_idx]
         nn_same_label[i] = (labels[nn_idx] == labels[i])
+        pred_nn[compound] = labels[nn_idx]
         topk = np.argpartition(-sims, k)[:k]
         knn_active_frac[i] = labels[topk].mean()
-        if labels[i] == 1:
+        '''if compound in assay_compound_map[name]:
+
             all_rows = plot_nearest_neighbours(
                 df=df, i=i, topk=topk, pdf_pages=all_rows, labels=labels)
 
@@ -180,11 +220,25 @@ def nn_concordance(df, fps, k=K_NEIGHBORS, name=None):
         pages.append(page)
 
     pages[0].save(
-        f"../plotting_results/nn_mcs_report_{name}.pdf",
+        f"../plotting_results/nn_mcs_report_show_only_selected_{name}.pdf",
         save_all=True,
         append_images=pages[1:]
-    )
-
+    )'''
+    
+    if not test_folds is None:
+        nn_pred = pd.DataFrame(pred_nn.items(), columns = ["compound", "prediction"])
+        merged = nn_pred.merge(df, on = 'compound')
+        merged.set_index('compound', inplace = True, drop = True)
+        mccs= []
+        for test_samples in test_folds:
+            sub_df = merged.loc[test_samples, ['response', 'prediction']]
+            mccs = matthews_corrcoef(merged['response'].values, merged['prediction'].values)
+        mean_mcc = fisher_mean_mcc(mccs)
+        with open('assays_baseline_mcc.csv', 'a') as output:
+            output.write(f'{name}\t{mean_mcc}\n')
+        
+        nn_pred.to_csv(f'../model_outputs/baseline_predictions/{name}_nn_pred.csv', sep ='\t', index = False)
+            
     return {
         'mean_NN_tanimoto_sim': nn_sim.mean(),
         'NN_label_concordance_overall': nn_same_label.mean(),
@@ -234,6 +288,8 @@ def main():
         '../model_inputs/morgan.csv', sep='\t', index_col=0)
     nn_rows = []
     mmp_rows = []
+    with open('assays_baseline_mcc.csv', 'w') as output:
+        output.write('assay\tmcc_avg\n')
     for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
 
         directory = f'../model_inputs/{subfolder}/'
@@ -241,9 +297,7 @@ def main():
         for name in os.listdir(directory):
             if '.csv' in name:
                 continue
-            # if not name in ['NVS_NR_bER', 'TOX21_AR_LUC_MDAKB2_Antagonist_0.5nM_R1881', 'OT_AR_ARELUC_AG_1440', 'TOX21_ERb_BLA_Agonist_ratio']:
-            if not name in ['NVS_NR_bER', 'TOX21_AR_LUC_MDAKB2_Antagonist_0.5nM_R1881']:
-                continue
+            
             pattern = f'{name}-*_datasail_input.csv'
 
             matching_files = glob.glob(
@@ -252,6 +306,12 @@ def main():
                 response = matching_files[0]
             else:
                 continue
+            test_folds = []
+            for fold in range(5):
+                with open(f'../model_inputs/{subfolder}/{name}/fold{fold}/test.txt', 'r') as test_sample_file:
+                    test_samples = test_sample_file.read().splitlines()
+                    test_folds.append(test_samples)
+            
             df = pd.read_csv(response, sep='\t')
             df.dropna(inplace=True)
             df.reset_index(inplace=True, drop=True)
@@ -260,12 +320,11 @@ def main():
 
             row = {'assay': name}
             mmp_row = {'assay': name}
-            row.update(nn_concordance(df, fps, name=name))
+            #row.update(nn_concordance(df, fps, name=name, test_folds = test_folds))
             summary, detail = mmp_analysis(df)
             mmp_row.update(summary)
             nn_rows.append(row)
             mmp_rows.append(mmp_row)
-
     nn_df = pd.DataFrame(nn_rows)
     mmp_df = pd.DataFrame(mmp_rows)
     nn_df.to_csv('nn_dataframe.csv', sep='\t', index=False)
