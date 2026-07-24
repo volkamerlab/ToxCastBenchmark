@@ -207,7 +207,7 @@ def nn_concordance(df, fps, k=K_NEIGHBORS, name=None, test_folds = None):
         pred_nn[compound] = labels[nn_idx]
         topk = np.argpartition(-sims, k)[:k]
         knn_active_frac[i] = labels[topk].mean()
-        '''if compound in assay_compound_map[name]:
+        if compound in assay_compound_map[name]:
 
             all_rows = plot_nearest_neighbours(
                 df=df, i=i, topk=topk, pdf_pages=all_rows, labels=labels)
@@ -223,7 +223,7 @@ def nn_concordance(df, fps, k=K_NEIGHBORS, name=None, test_folds = None):
         f"../plotting_results/nn_mcs_report_show_only_selected_{name}.pdf",
         save_all=True,
         append_images=pages[1:]
-    )'''
+    )
     
     if not test_folds is None:
         nn_pred = pd.DataFrame(pred_nn.items(), columns = ["compound", "prediction"])
@@ -320,7 +320,7 @@ def main():
 
             row = {'assay': name}
             mmp_row = {'assay': name}
-            #row.update(nn_concordance(df, fps, name=name, test_folds = test_folds))
+            row.update(nn_concordance(df, fps, name=name, test_folds = test_folds))
             summary, detail = mmp_analysis(df)
             mmp_row.update(summary)
             nn_rows.append(row)
