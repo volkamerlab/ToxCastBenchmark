@@ -15,4 +15,7 @@ Our repo contains our scripts for the following parts:
 ## 3. Models
 * In ```run_pipeline```, we provide two python scripts ```robust_ToxCast_predicitons_and_HT.py``` and ```execute_DR_on_embeddings.py```, that run all models with all DR methods for a compound representation given via the command line. Notably, for ```morgan``` and ```embeddings```, we could not run TabPFN without DR, as we use the version that only supports 500 features.
 
+## 4. Evaluation
+In the ```evaluation``` folder, we provide plotting scripts to generate the figures presented in the paper. The results of running all these scripts are, however, also lying in the ```plotting_results``` folder.
+
 **Note**: For all scripts except the datasail script, we provide a conda environment file called ```benchmarking_environment.yml```. Moreover, we use relative paths in our scripts, so, you have to run them in the folder, where they are located. If you want to run our scripts from somewhere else, you need to adjust the paths respectively.
