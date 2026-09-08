@@ -1,6 +1,6 @@
 
 from Base_Model import Base_Model
-from tabpfn_extensions.post_hoc_ensembles.sklearn_interface import AutoTabPFNClassifier, AutoTabPFNRegressor
+from tabpfn import TabPFNClassifier, TabPFNRegressor
 
 
 
@@ -78,11 +78,11 @@ class TabPFN(Base_Model):
             self.hyperparameters = hyperparameter_dict
         else:
             self.hyperparameters = self._default_hyperparameters
-
+        
         if data_json_dict['task'] == 'classification':
-            self.model = AutoTabPFNClassifier(max_time=120, device="cuda")
+            self.model = TabPFNClassifier(device="cuda")
         else:
-            self.model = AutoTabPFNRegressor(max_time=120, device="cuda")
+            self.model = TabPFNRegressor(device="cuda")
     
         self.model = self.model.set_params(**self.hyperparameters)
     
