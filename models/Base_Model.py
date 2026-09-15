@@ -12,7 +12,7 @@ class Base_Model():
         basic_check_samples = self._perform_basic_check_samples()
 
         self._features = self._read_samples(data_json_dict['features'])
-
+        
         self.analysis_name = data_json_dict['analysis_name']
         self._randomness = data_json_dict["rand"]
         self._output_dir = data_json_dict["output_dir"]
@@ -48,17 +48,30 @@ class Base_Model():
         '''
         matrix = pd.read_csv(matrix_file, sep='\t')
         matrix.set_index(matrix.columns.values[0], drop=True, inplace=True)
-        if matrix.isna().any().any() or np.isinf(matrix.values).any():
-            old_rows = set(matrix.index.to_list())
-            matrix.dropna(inplace=True, ignore_index=False)
-            matrix = matrix[~np.isinf(matrix).any(axis=1)]
-            new_rows = set(matrix.index.to_list())
-            to_remove = sorted(old_rows - new_rows)
-            for sample in to_remove:
-                if sample in self._test_samples:
-                    self._test_samples.remove(sample)
-                elif sample in self._training_samples:
-                    self._training_samples.remove(sample)
+        
+        to_remove_matrix  = []
+        
+        for sample in matrix.index:
+            if sample in self._test_samples:
+                continue
+            elif sample in self._training_samples:
+                continue
+            else:
+                to_remove_matrix.append(sample)
+        matrix = matrix.iloc[~matrix.index.isin(to_remove_matrix)]
+        to_remove_test = []
+        for sample in self._test_samples:
+            if not sample in matrix.index:
+                to_remove_test.append(sample)
+        for sample in to_remove_test:
+            self._test_samples.remove(sample)
+        
+        to_remove_train = []
+        for sample in self._training_samples:
+            if not sample in matrix.index:
+                to_remove_train.append(sample)
+        for sample in to_remove_train:
+            self._training_samples.remove(sample)    
         return matrix
 
     def combine_feature_types(self, feature_list: list):
