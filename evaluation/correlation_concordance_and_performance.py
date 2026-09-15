@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy.stats import pearsonr
 title_font_size = 16
 label_font_size = 14
 
@@ -28,10 +29,10 @@ def plot_performance_vs_concordance(plot_df, outdir, col_name, title):
     )
     
     # correlation
-    corr = plot_df[col_name].corr(plot_df["mcc_avg"])
+    corr, p = pearsonr(plot_df[col_name],plot_df["mcc_avg"])
     plt.text(
         0.05, 0.95,
-        f"r = {corr:.2f}",
+        f"r = {corr:.2f} (p-value = {p:.3})",
         transform=plt.gca().transAxes,
         fontsize=label_font_size,
         verticalalignment="top"
