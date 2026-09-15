@@ -53,7 +53,7 @@ def _heavy_atoms(smi_with_dummy):
     return m.GetNumHeavyAtoms() if m else 0
 
 
-def get_core_substituent_pairs(mol, max_sub_heavy=MAX_SUB_HEAVY_ATOMS, max_sub_core_ratio=MAX_SUB_CORE_RATIO):
+def get_core_substituent_pairs(mol, max_sub_heavy, max_sub_core_ratio):
     """Single-cut MMP fragmentation of one molecule. Returns list of (core_smiles, substituent_smiles)
     for cuts where the substituent passes the 'small change' size filters."""
     try:
@@ -82,7 +82,7 @@ def get_core_substituent_pairs(mol, max_sub_heavy=MAX_SUB_HEAVY_ATOMS, max_sub_c
     return out
 
 
-def mmp_analysis(df):
+def mmp_analysis(df, max_sub_heavy, max_core_ratio):
     """Finds all MMPs within one assay's molecule set and flags activity cliffs
     (matched pairs with differing response). Returns (summary_dict, detail_dict)."""
     smiles_list = df['smiles'].tolist()
@@ -94,7 +94,7 @@ def mmp_analysis(df):
     for idx, m in enumerate(mols):
         if m is None:
             continue
-        for core, sub in get_core_substituent_pairs(m):
+        for core, sub in get_core_substituent_pairs(m, max_sub_heavy= max_sub_heavy, max_sub_core_ratio = max_core_ratio):
             core_to_entries.setdefault(core, []).append((idx, sub))
 
     seen_pairs, cliff_pairs = set(), set()
@@ -284,53 +284,55 @@ def calculate_correlation(df, outpath):
 
 
 def main():
-    fingerprints = pd.read_csv(
-        '../model_inputs/morgan.csv', sep='\t', index_col=0)
-    nn_rows = []
-    mmp_rows = []
-    with open('assays_baseline_mcc.csv', 'w') as output:
-        output.write('assay\tmcc_avg\n')
-    for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
+    for max_sub_heavy in [6, 8, 10]:
+        for max_core_ratio in [0.2, 0.5, 0.8]:
+            fingerprints = pd.read_csv(
+                '../model_inputs/morgan.csv', sep='\t', index_col=0)
+            nn_rows = []
+            mmp_rows = []
+            with open('assays_baseline_mcc.csv', 'w') as output:
+                output.write('assay\tmcc_avg\n')
+            for subfolder in ['androgens', 'estrogens', 'glucocorticoids', 'progestagens', 'steroidal']:
 
-        directory = f'../model_inputs/{subfolder}/'
+                directory = f'../model_inputs/{subfolder}/'
 
-        for name in os.listdir(directory):
-            if '.csv' in name:
-                continue
-            
-            pattern = f'{name}-*_datasail_input.csv'
+                for name in os.listdir(directory):
+                    if '.csv' in name:
+                        continue
+                    
+                    pattern = f'{name}-*_datasail_input.csv'
 
-            matching_files = glob.glob(
-                f'../ToxCastDownloads/binary_responses_and_datasail_input_files/{subfolder}/{pattern}')
-            if matching_files:
-                response = matching_files[0]
-            else:
-                continue
-            test_folds = []
-            for fold in range(5):
-                with open(f'../model_inputs/{subfolder}/{name}/fold{fold}/test.txt', 'r') as test_sample_file:
-                    test_samples = test_sample_file.read().splitlines()
-                    test_folds.append(test_samples)
-            
-            df = pd.read_csv(response, sep='\t')
-            df.dropna(inplace=True)
-            df.reset_index(inplace=True, drop=True)
-            fps = [
-                DataStructs.CreateFromBitString(''.join(map(str, row.astype(int))))for row in fingerprints.loc[df['compound'].values, :].to_numpy()]
+                    matching_files = glob.glob(
+                        f'../ToxCastDownloads/binary_responses_and_datasail_input_files/{subfolder}/{pattern}')
+                    if matching_files:
+                        response = matching_files[0]
+                    else:
+                        continue
+                    test_folds = []
+                    for fold in range(5):
+                        with open(f'../model_inputs/{subfolder}/{name}/fold{fold}/test.txt', 'r') as test_sample_file:
+                            test_samples = test_sample_file.read().splitlines()
+                            test_folds.append(test_samples)
+                    
+                    df = pd.read_csv(response, sep='\t')
+                    df.dropna(inplace=True)
+                    df.reset_index(inplace=True, drop=True)
+                    fps = [
+                        DataStructs.CreateFromBitString(''.join(map(str, row.astype(int))))for row in fingerprints.loc[df['compound'].values, :].to_numpy()]
 
-            row = {'assay': name}
-            mmp_row = {'assay': name}
-            row.update(nn_concordance(df, fps, name=name, test_folds = test_folds))
-            summary, detail = mmp_analysis(df)
-            mmp_row.update(summary)
-            nn_rows.append(row)
-            mmp_rows.append(mmp_row)
-    nn_df = pd.DataFrame(nn_rows)
-    mmp_df = pd.DataFrame(mmp_rows)
-    nn_df.to_csv('nn_dataframe.csv', sep='\t', index=False)
-    mmp_df.to_csv('mmp_dataframe.csv', sep='\t', index=False)
-    calculate_correlation(nn_df, 'correlations_nn.csv')
-    calculate_correlation(mmp_df, 'correlations_mmp.csv')
+                    row = {'assay': name}
+                    mmp_row = {'assay': name}
+                    #row.update(nn_concordance(df, fps, name=name, test_folds = test_folds))
+                    summary, detail = mmp_analysis(df, max_sub_heavy= max_sub_heavy, max_core_ratio = max_core_ratio)
+                    mmp_row.update(summary)
+                    #nn_rows.append(row)
+                    mmp_rows.append(mmp_row)
+            #nn_df = pd.DataFrame(nn_rows)
+            mmp_df = pd.DataFrame(mmp_rows)
+            #nn_df.to_csv('nn_dataframe.csv', sep='\t', index=False)
+            mmp_df.to_csv(f'mmp_dataframe_{max_sub_heavy}_{max_core_ratio}.csv', sep='\t', index=False)
+            #calculate_correlation(nn_df, 'correlations_nn.csv')
+            calculate_correlation(mmp_df, f'correlations_mmp_{max_sub_heavy}_{max_core_ratio}.csv')
 
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import glob
-
+from scipy.stats import pearsonr
 title_font_size = 16
 label_font_size = 14
 
@@ -177,10 +177,10 @@ def plot_performance_vs_imbalance(plot_df, outdir):
     )
 
     # correlation
-    corr = plot_df["imbalance"].corr(plot_df["mcc_avg"])
+    corr, p = pearsonr(plot_df["imbalance"],plot_df["mcc_avg"])
     plt.text(
         0.05, 0.95,
-        f"r = {corr:.2f}",
+        f"r = {corr:.2f} (p-value = {p:.3})",
         transform=plt.gca().transAxes,
         fontsize=label_font_size,
         verticalalignment="top"
@@ -205,10 +205,10 @@ def boxplot_best_performances(df_avg, outdir, metric='mcc_avg', ylab="Best MCC p
     )
     best_values = best_per_assay[metric]
     print(best_per_assay.loc[:, [metric, 'assay']])
-    print(best_per_assay.loc[best_per_assay['mcc_avg'].isin(
-        best_per_assay['mcc_avg'].nlargest(2)), ['assay', 'mcc_avg']])
-    print(best_per_assay.loc[best_per_assay['mcc_avg'].isin(
-        best_per_assay['mcc_avg'].nsmallest(2)), ['assay', 'mcc_avg']])
+    print(best_per_assay.loc[best_per_assay[metric].isin(
+        best_per_assay[metric].nlargest(2)), ['assay', metric]])
+    print(best_per_assay.loc[best_per_assay[metric].isin(
+        best_per_assay[metric].nsmallest(2)), ['assay', metric]])
     plt.figure(figsize=(6, 6))
 
     ax = sns.boxplot(
@@ -218,13 +218,15 @@ def boxplot_best_performances(df_avg, outdir, metric='mcc_avg', ylab="Best MCC p
     )
 
     # overlay points (important!)
+    print(np.median(best_values))
     sns.stripplot(
         y=best_values,
         color="red",
         size=6,
         alpha=0.7
     )
-    plt.ylim(-0.1, 0.6)
+    if metric == 'mcc_avg':
+        plt.ylim(-0.1, 0.6)
     plt.ylabel(ylab, fontsize=13)
     plt.title("Best achievable performance across assays", fontsize=15)
 
@@ -232,7 +234,7 @@ def boxplot_best_performances(df_avg, outdir, metric='mcc_avg', ylab="Best MCC p
 
     plt.tight_layout()
     plt.savefig(
-        f'{outdir}/boxplot_with_best_performances_{metric}.png', dpi=600)
+        f'{outdir}/boxplot_with_best_performances_{metric}.pdf', dpi=600)
     best_per_assay = best_per_assay.sort_values(metric)
 
 
@@ -376,7 +378,7 @@ def plot_heatmap(df, outpath, metric='mcc'):
     for label in ax.get_yticklabels():
         label.set_linespacing(1.4)
     plt.tight_layout()
-    plt.savefig(f'{outpath}/combination_heatmap_{metric}.svg', dpi=600)
+    plt.savefig(f'{outpath}/combination_heatmap_{metric}.png', dpi=600)
 
     if metric == 'auroc':
         boxplot_best_performances(
@@ -435,8 +437,8 @@ def main(args):
                     for fold in range(5):
 
                         new_df = pd.read_csv(
-                            f'{directory}/{content}/fold{fold}/final_models_{feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
-
+                            f'{directory}/{content}/fold{fold}/final_models_{feature_type}_{dr_method}.txt', sep='\t', names=['model', 'fold', 'mcc', 'auroc'])
+                        new_df.dropna(inplace = True)
                         new_df['dr_method'] = [
                             f'{dr_method}' for _ in range(len(new_df.index))]
                         new_df['representation'] = [

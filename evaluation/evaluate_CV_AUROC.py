@@ -51,7 +51,8 @@ def cd_plot_for_nemenyi(final_results, dr_method, model_name_map, feature_type, 
     wide = means.pivot(index='assay', columns='model', values='auroc')
     avg_auroc = wide.mean(axis=0)
     avg_auroc = avg_auroc.apply(inverse_fisher_z)
-
+    print(wide.std(axis = 0))
+    print(wide.mean(axis = 0))
     pretty_names = {
         m: f"{model_name_map [m]}\navg. ROC-AUC={avg_auroc[m]:.3f}" for m in avg_ranks.index}
     avg_ranks.index = [pretty_names[m] for m in avg_ranks.index]
@@ -195,8 +196,8 @@ def main(args):
             for fold in range(5):
                 try:
                     new_df = pd.read_csv(
-                        f'{directory}/{content}/fold{fold}/final_models_{args.feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
-
+                        f'{directory}/{content}/fold{fold}/final_models_{args.feature_type}_{dr_method}.txt', sep='\t', names=['model', 'fold', 'mcc', 'auroc'])
+                    new_df.dropna(inplace = True)
                 except:
                     assay_done = False
                     break

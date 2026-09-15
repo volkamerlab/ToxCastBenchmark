@@ -1,6 +1,6 @@
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from Base_Model import Base_Model
-
+import numpy as np
 class Random_Forest(Base_Model):
 
     def __init__(self, data_json_dict):
@@ -66,7 +66,8 @@ class Random_Forest(Base_Model):
 
 
         self._feature_matrix = super().remove_unnecessary_features(self._feature_matrix)
-
+        if self._feature_matrix.isna().any().any() or np.isinf(self._feature_matrix.select_dtypes(include=np.number)).any().any():
+            print('Matrix conatins nan or inf')
 
         self._default_hyperparameters = {'random_state': 42}
         

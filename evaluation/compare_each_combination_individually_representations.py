@@ -188,7 +188,7 @@ def plot_performance_versus_assay_size(plot_df, outdir, col='representation'):
 
     plt.grid(alpha=0.3)
     plt.tight_layout()
-    plt.savefig(f'{outdir}/performance_vs_assay_size_{col}.png')
+    plt.savefig(f'{outdir}/performance_vs_assay_size_{col}.pdf')
 # -----------------------------
 # 5. Plot
 # -----------------------------
@@ -473,8 +473,8 @@ def main(args):
                     for fold in range(5):
 
                         new_df = pd.read_csv(
-                            f'{directory}/{content}/fold{fold}/final_models_{feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
-
+                            f'{directory}/{content}/fold{fold}/final_models_{feature_type}_{dr_method}.txt', sep='\t', names=['model', 'fold', 'mcc', 'auroc'])
+                        new_df.dropna(inplace = True)
                         new_df['dr_method'] = [
                             f'{dr_method}' for _ in range(len(new_df.index))]
                         new_df['representation'] = [

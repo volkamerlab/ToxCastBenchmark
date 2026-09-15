@@ -374,7 +374,7 @@ def create_heatmap(
 
     cbar = ax.collections[0].colorbar
     cbar.ax.tick_params(labelsize=11)
-    cbar.set_label("# assays", fontsize=14)
+    cbar.set_label("% assays", fontsize=14)
 
     plt.title(
         f"Top-k assay wins per {pipeline_part}",
@@ -496,8 +496,8 @@ def main(args):
                     for fold in range(5):
 
                         new_df = pd.read_csv(
-                            f'{directory}/{content}/fold{fold}/final_models_{feature_type}_{dr_method}.txt', sep='\t', skiprows=1, names=['model', 'fold', 'mcc', 'auroc'])
-
+                            f'{directory}/{content}/fold{fold}/final_models_{feature_type}_{dr_method}.txt', sep='\t', names=['model', 'fold', 'mcc', 'auroc'])
+                        new_df.dropna(inplace = True)
                         new_df['dr_method'] = [
                             f'{dr_method}' for _ in range(len(new_df.index))]
                         new_df['representation'] = [
